@@ -1,0 +1,257 @@
+;;;; This is part of cl-tar. See README.md and LICENSE for more information.
+
+(in-package #:tar-simple-extract)
+
+(defvar *deferred-links*)
+
+(defun simple-extract-archive (archive
+                               &key
+                                 (directory *default-pathname-defaults*)
+
+                                 (absolute-pathnames :error)
+                                 (device-pathnames :error)
+                                 (dot-dot :error)
+                                 (strip-components 0)
+
+                                 (if-exists :error)
+                                 (if-newer-exists :error)
+
+                                 (symbolic-links :dereference)
+                                 (hard-links :dereference)
+                                 (character-devices :skip)
+                                 (block-devices :skip)
+                                 (fifos :skip)
+
+                                 (filter (constantly t)))
+  "Extract all entries in ARCHIVE to DIRECTORY.
+
+DIRECTORY defaults to (UIOP:ENSURE-DIRECTORY-PATHNAME *DEFAULT-PATHNAME-DEFAULTS*).
+
+The following options configure how the final pathname of each entry is
+computed:
+
+ABSOLUTE-PATHANMES controls what happens when an entry is discovered that has
+an absolute pathname. It defaults to :ERROR. The possible values are:
+
++ :ALLOW: Allow the pathname as is.
++ :SKIP: Silently skip the entry.
++ :RELATIVIZE: Strip the leading / and treat it as a relative pathname.
++ :ERROR: Signal an ENTRY-NAME-IS-ABSOLUTE-ERROR, with the restarts CONTINUE,
+  SKIP-ENTRY, and RELATIVIZE-ENTRY-NAME active.
+
+DEVICE-PATHNAMES controls what happens when an entry is discovered that has a
+non-NIL device. It defaults to :ERROR. The possible values are:
+
++ :ALLOW: Allow the pathname as is.
++ :SKIP: Silently skip the entry.
++ :RELATIVIZE: Strip the device.
++ :ERROR: Signal an ENTRY-NAME-CONTAINS-DEVICE-ERROR, with the restarts
+  CONTINUE, SKIP-ENTRY, and RELATIVIZE-ENTRY-NAME active.
+
+DOT-DOT controls what happens when an entry is discovered that has a name
+containing .. in a directory component. It defaults to :ERROR. The possible
+values are:
+
++ :BACK: Allow the pathname as is, treating .. as :BACK.
++ :SKIP: Silently skip the entry.
++ :ERROR: Signal an ENTRY-NAME-CONTAINS-..-ERROR, with the restarts
+  TREAT-..-AS-BACK and SKIP-ENTRY active.
+
+STRIP-COMPONENTS is an integer specifying how many directory and file
+components to strip. Defaults to 0.
+
+
+
+The following options configure what happens to files that already exist on the
+filesystem.
+
+IF-NEWER-EXISTS controls what happens to files that already exist within
+DIRECTORY if extracting ARCHIVE would overwrite them and the existing file has
+a more recent mtime. It defaults to :ERROR. The possible values are:
+
++ NIL, :KEEP: existing files are skipped
++ :SUPERSEDE, :RENAME, :RENAME-AND-DELETE, :NEW-VERSION, :ERROR: Same behavior as OPEN.
+
+IF-EXISTS controls what happens to files that already exist within
+DIRECTORY. It defaults to :ERROR. The possible values are:
+
++ NIL, :KEEP: existing files are skipped
++ :SUPERSEDE, :RENAME, :RENAME-AND-DELETE, :NEW-VERSION, :ERROR: Same behavior as OPEN.
++ :KEEP-IF-NEWER: existing files are skipped, if newer than the version in the ARCHIVE.
+
+
+The following options configure how certain types of entries are extracted.
+
+SYMBOLIC-LINKS controls how symbolic links are extracted from ARCHIVE. It
+defaults to :DEREFERENCE. The possible values are:
+
++ :DEREFERENCE: any symlink entries are instead written as normal files with
+  the contents of the file they point to.
++ :SKIP: Skip the symlink.
++ :ERROR: Signal an error.
+
+HARD-LINKS controls how hard links are extracted from ARCHIVE. It defaults to
+:DEREFERENCE. The possible values are:
+
++ :DEREFERENCE: any hard link entries are instead written as normal files with
+  the contents of the file they point to.
++ :SKIP: Skip the hard link.
++ :ERROR: Signal an error.
+
+CHARACTER-DEVICES controls how character devices are extracted from ARCHIVE. It
+defaults to :SKIP. The possible values are:
+
++ :SKIP: Skip the entry.
++ :ERROR: Signal an error.
+
+BLOCK-DEVICES controls how block devices are extracted from ARCHIVE. It
+defaults to :SKIP. The possible values are:
+
++ :SKIP: Skip the entry.
++ :ERROR: Signal an error.
+
+FIFOS controls how FIFOs are extracted from ARCHIVE. It defaults to :SKIP. The
+possible values are:
+
++ :SKIP: Skip the entry.
++ :ERROR: Signal an error.
+
+The following option controls what entries are extracted.
+
+FILTER defaults to (CONSTANTLY T). Must be a function designator that takes two
+arguments (the entry and the pathname were it will be extracted) and returns
+non-NIL if the entry should be extracted."
+  (let ((*default-pathname-defaults* (uiop:ensure-directory-pathname directory))
+        (*deferred-links* nil))
+    (handler-bind
+        ((entry-name-contains-device-error
+           (lambda (c)
+             (case device-pathnames
+               (:allow (continue c))
+               (:skip (skip-entry c))
+               (:relativize (relativize-entry-name c)))))
+         (entry-name-contains-..-error
+           (lambda (c)
+             (case dot-dot
+               (:back (treat-..-as-back c))
+               (:skip (skip-entry c)))))
+         (entry-name-is-absolute-error
+           (lambda (c)
+             (case absolute-pathnames
+               (:allow (continue c))
+               (:skip (skip-entry c))
+               (:relativize (relativize-entry-name c)))))
+
+         (unsupported-symbolic-link-entry-error
+           (lambda (c)
+             (case symbolic-links
+               (:skip (skip-entry c))
+               (:dereference (dereference-link c)))))
+         (unsupported-hard-link-entry-error
+           (lambda (c)
+             (case hard-links
+               (:skip (skip-entry c))
+               (:dereference (dereference-link c)))))
+         (unsupported-fifo-entry-error
+           (lambda (c)
+             (case fifos
+               (:skip (skip-entry c)))))
+         (unsupported-block-device-entry-error
+           (lambda (c)
+             (case block-devices
+               (:skip (skip-entry c)))))
+         (unsupported-character-device-entry-error
+           (lambda (c)
+             (case character-devices
+               (:skip (skip-entry c))))))
+      (tar:do-entries (entry archive)
+        (restart-case
+            (let ((pn (compute-extraction-pathname entry (tar:name entry) strip-components)))
+              (when (funcall filter entry pn)
+                (simple-extract-entry entry pn :if-exists if-exists
+                                               :if-newer-exists if-newer-exists)))
+          (skip-entry ())))
+      (process-deferred-links *deferred-links* if-exists if-newer-exists)
+      (values))))
+
+(defun link-target-exists-p (pair)
+  (let ((entry (car pair))
+        (pn (cdr pair)))
+    (probe-file (merge-pathnames (tar:linkname entry)
+                                 (merge-pathnames pn)))))
+
+(defun process-deferred-links-1 (deferred-links if-exists if-newer-exists)
+  (let ((actionable-links (remove-if-not 'link-target-exists-p deferred-links)))
+    (dolist (actionable-link actionable-links)
+      (destructuring-bind (entry . pn) actionable-link
+        (let ((pn (merge-pathnames pn)))
+          (unless (null (probe-file pn))
+            (let ((file-write-date (file-write-date pn)))
+              (when (and (not (null file-write-date))
+                         (> file-write-date (local-time:timestamp-to-universal (tar:mtime entry))))
+                (setf if-exists if-newer-exists))))
+          (when (eql if-exists :keep)
+            (setf if-exists nil))
+          (with-open-file (s pn :direction :output
+                                :element-type '(unsigned-byte 8)
+                                :if-exists if-exists)
+            (unless (null s)
+              (with-open-file (source (merge-pathnames (tar:linkname entry)
+                                                       pn)
+                                      :element-type '(unsigned-byte 8))
+                (uiop:copy-stream-to-stream source s :element-type '(unsigned-byte 8))))))))
+    (set-difference deferred-links actionable-links)))
+
+(defun process-deferred-links (deferred-links if-exists if-newer-exists)
+  (loop
+    :for prev-links := deferred-links :then links
+    :for links := (process-deferred-links-1 prev-links if-exists if-newer-exists)
+    :while links
+    :when (= (length links) (length prev-links))
+      :do (error "circular-and-or-broken-links")))
+
+(defgeneric simple-extract-entry (entry pn &key))
+
+(defmethod simple-extract-entry :before ((entry tar:entry) pn &key)
+  (ensure-directories-exist (merge-pathnames pn)))
+
+(defmethod simple-extract-entry :around ((entry tar:symbolic-link-entry) pn &key)
+  (restart-case
+      (error 'unsupported-symbolic-link-entry-error :entry entry)
+    (dereference-link ()
+      (push (cons entry pn) *deferred-links*))))
+
+(defmethod simple-extract-entry :around ((entry tar:hard-link-entry) pn &key)
+  (restart-case
+      (error 'unsupported-hard-link-entry-error :entry entry)
+    (dereference-link ()
+      (push (cons entry pn) *deferred-links*))))
+
+(defmethod simple-extract-entry :before ((entry tar:fifo-entry) pn &key)
+  (error 'unsupported-fifo-entry-error :entry entry))
+
+(defmethod simple-extract-entry :before ((entry tar:block-device-entry) pn &key)
+  (error 'unsupported-block-entry-error :entry entry))
+
+(defmethod simple-extract-entry :before ((entry tar:character-device-entry) pn &key)
+  (error 'unsupported-character-entry-error :entry entry))
+
+(defmethod simple-extract-entry ((entry tar:entry) pn &key)
+  (declare (ignore pn))
+  t)
+
+(defmethod simple-extract-entry ((entry tar:file-entry) pn &key if-exists if-newer-exists)
+  (let ((pn (merge-pathnames pn)))
+    (unless (null (probe-file pn))
+      (let ((file-write-date (file-write-date pn)))
+        (when (and (not (null file-write-date))
+                   (> file-write-date (local-time:timestamp-to-universal (tar:mtime entry))))
+          (setf if-exists if-newer-exists))))
+    (when (eql if-exists :keep)
+      (setf if-exists nil))
+    (with-open-file (s pn :direction :output
+                          :element-type '(unsigned-byte 8)
+                          :if-exists if-exists)
+      (unless (null s)
+        (uiop:copy-stream-to-stream (tar:make-entry-stream entry) s
+                                    :element-type '(unsigned-byte 8))))))

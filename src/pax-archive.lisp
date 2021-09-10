@@ -1,0 +1,53 @@
+;;;; pax archives
+;;;;
+;;;; This is part of cl-tar. See README.md and LICENSE for more information.
+
+(in-package #:tar)
+
+(defclass pax-archive (ustar-archive)
+  ((default-attributes
+    :initform nil
+    :reader archive-default-attributes)))
+
+(defmethod archive-supports-property-p ((archive pax-archive) property)
+  (or (not (null (member property '(atime ctime))))
+      (call-next-method)))
+
+(defmethod convert-from-physical-entry ((archive pax-archive)
+                                        (physical-entry tar-file:pax-extended-attributes-entry)
+                                        &rest overrides)
+  (let ((path (tar-file:attribute physical-entry "path"))
+        (linkpath (tar-file:attribute physical-entry "linkpath"))
+        (atime (tar-file:attribute physical-entry "atime"))
+        (ctime (tar-file:attribute physical-entry "ctime"))
+        (mtime (tar-file:attribute physical-entry "mtime"))
+        (uname (tar-file:attribute physical-entry "uname"))
+        (gname (tar-file:attribute physical-entry "gname"))
+        (uid (tar-file:attribute physical-entry "uid"))
+        (gid (tar-file:attribute physical-entry "gid"))
+        (size (tar-file:attribute physical-entry "size")))
+    (flet ((add-override (key value)
+             (push value overrides)
+             (push key overrides)))
+      (unless (null path)
+        (add-override :name path))
+      (unless (null linkpath)
+        (add-override :linkname linkpath))
+      (unless (null atime)
+        (add-override :atime (string-to-timestamp atime)))
+      (unless (null ctime)
+        (add-override :ctime (string-to-timestamp ctime)))
+      (unless (null mtime)
+        (add-override :mtime (string-to-timestamp mtime)))
+      (unless (null uname)
+        (add-override :uname (string-to-timestamp uname)))
+      (unless (null gname)
+        (add-override :gname (string-to-timestamp gname)))
+      (unless (null uid)
+        (add-override :uid (parse-integer uid)))
+      (unless (null gid)
+        (add-override :gid (parse-integer gid)))
+      (unless (null size)
+        (add-override :size (parse-integer size))))
+    (apply #'convert-from-physical-entry archive (tar-file:read-entry (archive-file archive))
+           overrides)))

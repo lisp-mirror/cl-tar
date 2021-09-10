@@ -1,0 +1,49 @@
+include:
+  - template: 'Workflows/MergeRequest-Pipelines.gitlab-ci.yml'
+  - remote: 'https://gitlab.com/clci/gitlab-ci/-/raw/release/v1-stable/ci-cache.yml'
+  - remote: 'https://gitlab.com/clci/gitlab-ci/-/raw/release/v1-stable/clpm.yml'
+
+.test:
+  extends:
+    - .clci ci cache per job
+  before_script:
+    - !reference [.clci clpm install, script]
+    - !reference [.clci clpm configure, script]
+    - $CLPM bundle install --no-resolve
+
+test abcl:
+  image: clfoundation/abcl
+  extends: .test
+  script:
+    - $CLPM bundle exec -- abcl --batch --load scripts/run-tar-tests.lisp
+    - $CLPM bundle exec -- abcl --batch --load scripts/run-simple-extract-tests.lisp
+
+test ccl:
+  image: clfoundation/ccl
+  extends: .test
+  script:
+    - $CLPM bundle exec -- ccl -b -l scripts/run-tar-tests.lisp
+    - $CLPM bundle exec -- ccl -b -l scripts/run-simple-extract-tests.lisp
+
+test ecl:
+  image: clfoundation/ecl
+  extends: .test
+  script:
+    - $CLPM bundle exec -- ecl --shell scripts/run-tests.lisp
+    - $CLPM bundle exec -- ecl --shell scripts/run-simple-extract-tests.lisp
+
+test sbcl:
+  image: clfoundation/sbcl
+  extends: .test
+  script:
+    - $CLPM bundle exec -- sbcl --script scripts/run-tests.lisp
+    - $CLPM bundle exec -- sbcl --script scripts/run-simple-extract-tests.lisp
+
+generate docs:
+  image: clfoundation/sbcl
+  extends: .test
+  script:
+    - $CLPM bundle exec -- sbcl --script scripts/generate-docs.lisp
+  artifacts:
+    paths:
+      - doc/

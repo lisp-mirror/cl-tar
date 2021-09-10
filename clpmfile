@@ -1,0 +1,35 @@
+;;; -*- mode: common-lisp -*-
+(:api-version "0.3")
+
+(:source "quicklisp"
+ :type :ql-clpi
+ :url "https://quicklisp.common-lisp-project-index.org/")
+
+;; Needed because QL dependencies suck. These are dependencies of 40ants-doc.
+(:system "named-readtables")
+(:system "pythonic-string-reader")
+
+;; And these are deps for 40ants-doc-full (to actually generate the
+;; documentation).
+(:system "40ants-doc-full")
+(:system "3bmd")
+(:system "3bmd-ext-code-blocks")
+(:system "closer-mop")
+(:system "swank")
+(:system "cl-ppcre")
+(:system "cl-ppcre-unicode")
+(:system "ironclad")
+(:system "cl-fad")
+(:system "str")
+
+;; Needed to build cl-unicode
+(:system "flexi-streams")
+
+(:gitlab "cl-tar-file"
+ :host "gitlab.common-lisp.net"
+ :path "cl-tar/cl-tar-file"
+ :branch "main")
+
+(:asd "tar.asd")
+(:asd "tar-common-extract.asd")
+(:asd "tar-simple-extract.asd")
