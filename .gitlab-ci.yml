@@ -29,14 +29,14 @@ test ecl:
   image: clfoundation/ecl
   extends: .test
   script:
-    - $CLPM bundle exec -- ecl --shell scripts/run-tests.lisp
+    - $CLPM bundle exec -- ecl --shell scripts/run-tar-tests.lisp
     - $CLPM bundle exec -- ecl --shell scripts/run-simple-extract-tests.lisp
 
 test sbcl:
   image: clfoundation/sbcl
   extends: .test
   script:
-    - $CLPM bundle exec -- sbcl --script scripts/run-tests.lisp
+    - $CLPM bundle exec -- sbcl --script scripts/run-tar-tests.lisp
     - $CLPM bundle exec -- sbcl --script scripts/run-simple-extract-tests.lisp
 
 generate docs:
