@@ -62,7 +62,7 @@
 ("cl-ppcre" :version "2019-05-21" :source "quicklisp" :systems
  ("cl-ppcre" "cl-ppcre-unicode"))
 ("cl-str" :version "2021-05-31" :source "quicklisp" :systems ("str"))
-("cl-tar-file" :version (:commit "8f3eac07ef4466b20d43c77be920b978e8a5050d")
+("cl-tar-file" :version (:commit "aa8bcabbf4cab7776156c6e8deea38f2776239bf")
  :source :implicit-vcs :systems ("tar-file" "tar-file/test"))
 ("cl-unicode" :version "2021-02-28" :source "quicklisp" :systems ("cl-unicode"))
 ("closer-mop" :version "2021-08-07" :source "quicklisp" :systems ("closer-mop"))
