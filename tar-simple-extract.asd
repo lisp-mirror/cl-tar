@@ -5,7 +5,7 @@
   :author "Eric Timmons <eric@timmons.dev>"
   :description "A system to extract tar archives to the filesystem using only portable CL constructs."
   :license "MIT"
-  :depends-on ("split-sequence" "tar" "uiop" "40ants-doc")
+  :depends-on ("tar" "tar-common-extract" "uiop" "40ants-doc")
   :pathname "src/simple-extract"
   :in-order-to ((test-op (load-op "tar-simple-extract/test")))
   :perform (test-op (o c)

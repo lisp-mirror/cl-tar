@@ -203,14 +203,15 @@
 ("slime" (t (:system :name "swank")))
 
 ("split-sequence"
- ((:system :name "tar-simple-extract") (:system :name "split-sequence"))
  ((:system :name "tar-common-extract") (:system :name "split-sequence"))
  ((:system :name "tar") (:system :name "split-sequence"))
  ((:system :name "colorize") (:system :name "split-sequence"))
  ((:system :name "3bmd-ext-code-blocks") (:system :name "split-sequence"))
  ((:system :name "3bmd") (:system :name "split-sequence")))
 
-("tar-common-extract.asd" (t (:asd-file :name "tar-common-extract.asd")))
+("tar-common-extract.asd"
+ ((:system :name "tar-simple-extract") (:system :name "tar-common-extract"))
+ (t (:asd-file :name "tar-common-extract.asd")))
 
 ("tar-simple-extract.asd"
  ((:system :name "tar-simple-extract/test")
