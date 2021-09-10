@@ -215,13 +215,13 @@ non-NIL if the entry should be extracted."
 (defmethod simple-extract-entry :before ((entry tar:entry) pn &key)
   (ensure-directories-exist (merge-pathnames pn)))
 
-(defmethod simple-extract-entry :around ((entry tar:symbolic-link-entry) pn &key)
+(defmethod simple-extract-entry :around ((entry tar:symbolic-link-entry) pn &key &allow-other-keys)
   (restart-case
       (error 'unsupported-symbolic-link-entry-error :entry entry)
     (dereference-link ()
       (push (cons entry pn) *deferred-links*))))
 
-(defmethod simple-extract-entry :around ((entry tar:hard-link-entry) pn &key)
+(defmethod simple-extract-entry :around ((entry tar:hard-link-entry) pn &key &allow-other-keys)
   (restart-case
       (error 'unsupported-hard-link-entry-error :entry entry)
     (dereference-link ()
