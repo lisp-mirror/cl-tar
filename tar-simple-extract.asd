@@ -13,7 +13,9 @@
                                           :parachute :status
                                           (uiop:symbol-call :parachute :test :tar-simple-extract-test)))
                       (error "Tests failed")))
-  :components ((:file "package")))
+  :components ((:file "package")
+               (:file "conditions" :depends-on ("package"))
+               (:file "extract" :depends-on ("package"))))
 
 (defsystem #:tar-simple-extract/test
   :pathname "test/simple-extract"
