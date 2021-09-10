@@ -6,7 +6,7 @@ functionality.
 
 The `tar` system is a thin layer on top of
 the [`tar-file`](https://gitlab.common-lisp.net/cl-tar/cl-tar-file)
-system. While `tar-file` is focuesd on reading and writing physical entries,
+system. While `tar-file` is focused on reading and writing physical entries,
 `tar` places an emphasis on reading and writing logical entries.
 
 The practical effect of this is that when using `tar`, any single object stored
