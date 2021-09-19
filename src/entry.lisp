@@ -61,8 +61,8 @@
 
 (define-optional-entry-property uname string)
 (define-optional-entry-property gname string)
-(define-entry-property atime local-time:timestamp)
-(define-entry-property ctime local-time:timestamp)
+(define-optional-entry-property atime local-time:timestamp)
+(define-optional-entry-property ctime local-time:timestamp)
 
 (defclass entry ()
   ((archive

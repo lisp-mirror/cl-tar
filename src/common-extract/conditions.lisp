@@ -19,6 +19,27 @@
 (define-condition entry-name-is-absolute-error (extraction-entry-error)
   ())
 
+(define-condition unsupported-entry-error (extraction-entry-error)
+  ())
+
+(define-condition unsupported-fifo-entry-error (unsupported-entry-error)
+  ())
+
+(define-condition unsupported-symbolic-link-entry-error (unsupported-entry-error)
+  ())
+
+(define-condition unsupported-hard-link-entry-error (unsupported-entry-error)
+  ())
+
+(define-condition unsupported-block-device-entry-error (unsupported-entry-error)
+  ())
+
+(define-condition unsupported-character-device-entry-error (unsupported-entry-error)
+  ())
+
+(defun dereference-link (&optional c)
+  (invoke-restart (find-restart 'dereference-link c)))
+
 (defun skip-entry (&optional c)
   (invoke-restart (find-restart 'skip-entry c)))
 

@@ -37,4 +37,10 @@
    #:hard-link-entry
    #:fifo-entry
    #:block-device-entry
-   #:character-device-entry))
+   #:character-device-entry
+
+   #:tar-condition
+   #:tar-error
+   #:unsupported-property
+   #:ignore-unsupported-property
+   #:with-ignored-unsupported-properties))

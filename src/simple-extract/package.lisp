@@ -16,12 +16,6 @@
 
    #:entry-name-is-absolute-error
 
-   #:skip-entry
-   #:relativize-entry-name
-   #:treat-..-as-back)
-
-  ;; conditions
-  (:export
    #:unsupported-entry-error
    #:unsupported-character-device-entry-error
    #:unsupported-block-device-entry-error
@@ -29,7 +23,10 @@
    #:unsupported-symbolic-link-entry-error
    #:unsupported-hard-link-entry-error
 
-   #:dereference-link)
+   #:dereference-link
+   #:skip-entry
+   #:relativize-entry-name
+   #:treat-..-as-back)
 
   ;; extract
   (:export
