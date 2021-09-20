@@ -210,6 +210,22 @@
                     :prefix (or prefix "")
                     :data (data entry))))))
 
+(defmethod %write-entry ((archive ustar-archive) (entry directory-entry) &rest overrides)
+  (multiple-value-bind (prefix name) (split-name (name entry))
+    (apply #'tar-file:write-directory-entry
+           (archive-file archive)
+           (maybe-truncate name (string-max-length archive 'name))
+           (append overrides
+                   (list
+                    :size (size entry)
+                    :gid (gid entry)
+                    :uid (uid entry)
+                    :uname (maybe-truncate (uname entry) 31)
+                    :gname (maybe-truncate (gname entry) 31)
+                    :mtime (local-time:timestamp-to-unix (mtime entry))
+                    :mode (permissions-to-mode (mode entry))
+                    :prefix (or prefix ""))))))
+
 (defmethod %write-entry ((archive ustar-archive) (entry symbolic-link-entry) &rest overrides)
   (multiple-value-bind (prefix name) (split-name (name entry))
     (apply #'tar-file:write-symbolic-link-entry

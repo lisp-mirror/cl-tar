@@ -9,9 +9,12 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 :sources
+(:implicit-file :type :file-system :system-files ("tar-simple-create.asd"))
+(:implicit-file :type :file-system :system-files ("tar-extract.asd"))
 (:implicit-file :type :file-system :system-files ("tar-simple-extract.asd"))
 (:implicit-file :type :file-system :system-files ("tar-common-extract.asd"))
 (:implicit-file :type :file-system :system-files ("tar.asd"))
+(:implicit-vcs :type :vcs :projects (("osicat" :github :path "daewok/osicat")))
 (:implicit-vcs :type :vcs :projects
  (("cl-tar-file" :gitlab :host "gitlab.common-lisp.net" :path
    "cl-tar/cl-tar-file")))
@@ -24,9 +27,12 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 :requirements
+(:asd-file :name "tar-simple-create.asd")
+(:asd-file :name "tar-extract.asd")
 (:asd-file :name "tar-simple-extract.asd")
 (:asd-file :name "tar-common-extract.asd")
 (:asd-file :name "tar.asd")
+(:project :name "osicat" :branch "at-functions" :source :implicit-vcs)
 (:project :name "cl-tar-file" :branch "main" :source :implicit-vcs)
 (:system :name "flexi-streams")
 (:system :name "str")
@@ -62,7 +68,7 @@
 ("cl-ppcre" :version "2019-05-21" :source "quicklisp" :systems
  ("cl-ppcre" "cl-ppcre-unicode"))
 ("cl-str" :version "2021-05-31" :source "quicklisp" :systems ("str"))
-("cl-tar-file" :version (:commit "aa8bcabbf4cab7776156c6e8deea38f2776239bf")
+("cl-tar-file" :version (:commit "46b1fa684f861aa5a8891073759e392008d7b8c8")
  :source :implicit-vcs :systems ("tar-file" "tar-file/test"))
 ("cl-unicode" :version "2021-02-28" :source "quicklisp" :systems ("cl-unicode"))
 ("closer-mop" :version "2021-08-07" :source "quicklisp" :systems ("closer-mop"))
@@ -72,6 +78,8 @@
 ("documentation-utils" :version "2019-07-11" :source "quicklisp" :systems
  ("documentation-utils"))
 ("esrap" :version "2020-12-20" :source "quicklisp" :systems ("esrap"))
+("file-attributes" :version "2021-08-07" :source "quicklisp" :systems
+ ("file-attributes"))
 ("flexi-streams" :version "2021-08-07" :source "quicklisp" :systems
  ("flexi-streams"))
 ("form-fiddle" :version "2019-07-11" :source "quicklisp" :systems
@@ -82,15 +90,21 @@
 ("local-time" :version "2021-01-24" :source "quicklisp" :systems ("local-time"))
 ("named-readtables" :version "2021-05-31" :source "quicklisp" :systems
  ("named-readtables"))
-("osicat" :version "2021-02-28" :source "quicklisp" :systems ("osicat"))
+("osicat" :version (:commit "43f9f9beed0c64c48b0240434cdbb0f199f3d0dd") :source
+ :implicit-vcs :systems ("osicat" "osicat/tests"))
 ("parachute" :version "2021-08-07" :source "quicklisp" :systems ("parachute"))
 ("pythonic-string-reader" :version "2018-07-11" :source "quicklisp" :systems
  ("pythonic-string-reader"))
+("rt" :version "2010-10-07" :source "quicklisp" :systems ("rt"))
 ("slime" :version "2020-12-20" :source "quicklisp" :systems ("swank"))
 ("split-sequence" :version "2021-05-31" :source "quicklisp" :systems
  ("split-sequence"))
 ("tar-common-extract.asd" :version :newest :source :implicit-file :systems
  ("tar-common-extract"))
+("tar-extract.asd" :version :newest :source :implicit-file :systems
+ ("tar-extract" "tar-extract/test"))
+("tar-simple-create.asd" :version :newest :source :implicit-file :systems
+ ("tar-simple-create" "tar-simple-create/test"))
 ("tar-simple-extract.asd" :version :newest :source :implicit-file :systems
  ("tar-simple-extract" "tar-simple-extract/test"))
 ("tar.asd" :version :newest :source :implicit-file :systems ("tar" "tar/test"))
@@ -116,6 +130,7 @@
  ((:system :name "trivial-with-current-source-form")
   (:system :name "alexandria"))
  ((:system :name "tar-file") (:system :name "alexandria"))
+ ((:system :name "tar-extract") (:system :name "alexandria"))
  ((:system :name "tar") (:system :name "alexandria"))
  ((:system :name "osicat") (:system :name "alexandria"))
  ((:system :name "esrap") (:system :name "alexandria"))
@@ -129,6 +144,7 @@
  ((:system :name "3bmd") (:system :name "alexandria")))
 
 ("babel" ((:system :name "tar-file") (:system :name "babel"))
+ ((:system :name "tar-extract") (:system :name "babel"))
  ((:system :name "tar") (:system :name "babel"))
  ((:system :name "cffi") (:system :name "babel")))
 
@@ -136,8 +152,12 @@
  ((:system :name "ironclad") (:system :name "bordeaux-threads"))
  ((:system :name "cl-fad") (:system :name "bordeaux-threads")))
 
-("cffi" ((:system :name "osicat") (:system :name "cffi"))
+("cffi" ((:system :name "tar-extract") (:system :name "cffi"))
+ ((:system :name "osicat/tests") (:system :name "cffi-grovel"))
+ ((:system :name "osicat") (:system :name "cffi"))
  ((:system :name "osicat") (:system :name "cffi-grovel"))
+ ((:system :name "osicat") (:system :name "cffi-grovel"))
+ ((:system :name "file-attributes") (:system :name "cffi"))
  ((:system :name "cffi-toolchain") (:system :name "cffi"))
  ((:system :name "cffi-grovel") (:system :name "cffi"))
  ((:system :name "cffi-grovel") (:system :name "cffi-toolchain")))
@@ -167,16 +187,22 @@
 ("colorize" ((:system :name "3bmd-ext-code-blocks") (:system :name "colorize")))
 
 ("doc" ((:system :name "tar-simple-extract") (:system :name "40ants-doc"))
+ ((:system :name "tar-simple-create") (:system :name "40ants-doc"))
  ((:system :name "tar-file") (:system :name "40ants-doc"))
+ ((:system :name "tar-extract") (:system :name "40ants-doc"))
  ((:system :name "tar-common-extract") (:system :name "40ants-doc"))
  ((:system :name "tar") (:system :name "40ants-doc"))
  (t (:system :name "40ants-doc-full")))
 
 ("documentation-utils"
  ((:system :name "parachute") (:system :name "documentation-utils"))
- ((:system :name "form-fiddle") (:system :name "documentation-utils")))
+ ((:system :name "form-fiddle") (:system :name "documentation-utils"))
+ ((:system :name "file-attributes") (:system :name "documentation-utils")))
 
 ("esrap" ((:system :name "3bmd") (:system :name "esrap")))
+
+("file-attributes"
+ ((:system :name "tar-extract") (:system :name "file-attributes")))
 
 ("flexi-streams" (t (:system :name "flexi-streams")))
 
@@ -186,23 +212,36 @@
 
 ("ironclad" (t (:system :name "ironclad")))
 
-("local-time" ((:system :name "tar") (:system :name "local-time")))
+("local-time"
+ ((:system :name "tar-simple-extract") (:system :name "local-time"))
+ ((:system :name "tar-simple-create") (:system :name "local-time"))
+ ((:system :name "tar-extract") (:system :name "local-time"))
+ ((:system :name "tar") (:system :name "local-time")))
 
 ("named-readtables"
  ((:system :name "pythonic-string-reader") (:system :name "named-readtables"))
  (t (:system :name "named-readtables")))
 
-("osicat" ((:system :name "tar-simple-extract/test") (:system :name "osicat")))
+("osicat" ((:system :name "tar-simple-extract/test") (:system :name "osicat"))
+ ((:system :name "tar-simple-create/test") (:system :name "osicat"))
+ ((:system :name "tar-extract") (:system :name "osicat"))
+ ((:system :name "osicat/tests") (:system :name "osicat"))
+ (t (:project :name "osicat" :branch "at-functions" :source :implicit-vcs)))
 
 ("parachute" ((:system :name "tar/test") (:system :name "parachute"))
  ((:system :name "tar-simple-extract/test") (:system :name "parachute"))
- ((:system :name "tar-file/test") (:system :name "parachute")))
+ ((:system :name "tar-simple-create/test") (:system :name "parachute"))
+ ((:system :name "tar-file/test") (:system :name "parachute"))
+ ((:system :name "tar-extract/test") (:system :name "parachute")))
 
 ("pythonic-string-reader" (t (:system :name "pythonic-string-reader")))
+
+("rt" ((:system :name "osicat/tests") (:system :name "rt")))
 
 ("slime" (t (:system :name "swank")))
 
 ("split-sequence"
+ ((:system :name "tar-extract") (:system :name "split-sequence"))
  ((:system :name "tar-common-extract") (:system :name "split-sequence"))
  ((:system :name "tar") (:system :name "split-sequence"))
  ((:system :name "colorize") (:system :name "split-sequence"))
@@ -211,7 +250,16 @@
 
 ("tar-common-extract.asd"
  ((:system :name "tar-simple-extract") (:system :name "tar-common-extract"))
+ ((:system :name "tar-extract") (:system :name "tar-common-extract"))
  (t (:asd-file :name "tar-common-extract.asd")))
+
+("tar-extract.asd"
+ ((:system :name "tar-extract/test") (:system :name "tar-extract"))
+ (t (:asd-file :name "tar-extract.asd")))
+
+("tar-simple-create.asd"
+ ((:system :name "tar-simple-create/test") (:system :name "tar-simple-create"))
+ (t (:asd-file :name "tar-simple-create.asd")))
 
 ("tar-simple-extract.asd"
  ((:system :name "tar-simple-extract/test")
@@ -220,11 +268,16 @@
 
 ("tar.asd" ((:system :name "tar/test") (:system :name "tar"))
  ((:system :name "tar-simple-extract") (:system :name "tar"))
+ ((:system :name "tar-simple-create") (:system :name "tar"))
+ ((:system :name "tar-extract") (:system :name "tar"))
  ((:system :name "tar-common-extract") (:system :name "tar"))
  (t (:asd-file :name "tar.asd")))
 
 ("trivial-features"
+ ((:system :name "osicat/tests") (:system :name "trivial-features"))
  ((:system :name "osicat") (:system :name "trivial-features"))
+ ((:system :name "osicat") (:system :name "trivial-features"))
+ ((:system :name "file-attributes") (:system :name "trivial-features"))
  ((:system :name "cffi") (:system :name "trivial-features"))
  ((:system :name "babel") (:system :name "trivial-features")))
 

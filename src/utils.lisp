@@ -39,7 +39,7 @@
                                     :nsec nsecs))))
 
 (defun timestamp-to-string (timestamp)
-  (let ((raw-string (format nil "~D.~9,0D" (local-time:timestamp-to-unix timestamp)
+  (let ((raw-string (format nil "~D.~9,'0D" (local-time:timestamp-to-unix timestamp)
                             (local-time:nsec-of timestamp))))
     (loop :while (eql (aref raw-string (1- (length raw-string))) #\0)
           :do (setf raw-string (subseq raw-string 0 (1- (length raw-string)))))

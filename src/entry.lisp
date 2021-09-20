@@ -145,6 +145,7 @@ CTIME."))
 (defclass directory-entry (entry)
   ((size
     :initarg :size
+    :initform 0
     :type integer
     :accessor size)))
 

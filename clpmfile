@@ -30,6 +30,12 @@
  :path "cl-tar/cl-tar-file"
  :branch "main")
 
+(:github "osicat"
+ :path "daewok/osicat"
+ :branch "at-functions")
+
 (:asd "tar.asd")
 (:asd "tar-common-extract.asd")
 (:asd "tar-simple-extract.asd")
+(:asd "tar-extract.asd")
+(:asd "tar-simple-create.asd")
