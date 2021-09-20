@@ -44,3 +44,35 @@ VALUE is returned from any attempt to access them."
     :reader unbound-property-name
     :documentation "The name of the unbound property."))
   (:documentation "Signaled when a property is accessed that is unbound."))
+
+(define-condition required-property-missing (tar-error)
+  ((name
+    :initarg :name
+    :reader required-property-missing-name
+    :documentation "The name of the missing property.")))
+
+(define-condition unsupported-property-value (tar-error)
+  ((name
+    :initarg :name
+    :reader unsupported-property-value-name
+    :documentation "The name of the unsupported property.")
+   (value
+    :initarg :value
+    :reader unsupported-property-value-value
+    :documentation "The value of the unsupported property.")))
+
+(define-condition property-value-too-long (unsupported-property-value)
+  ())
+
+(defun truncate-value (&optional condition)
+  (invoke-restart (find-restart 'truncate-value condition)))
+
+(defun call-with-truncated-unsupported-values (thunk)
+  (handler-bind
+      ((unsupported-property-value (lambda (c)
+                                     (when (find-restart 'truncate-value c)
+                                       (truncate-value c)))))
+    (funcall thunk)))
+
+(defmacro with-trancated-unsupported-values (() &body body)
+  `(call-with-truncated-unsupported-values (lambda () ,@body)))

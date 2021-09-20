@@ -53,93 +53,103 @@
          (byte-contents (alexandria:read-stream-content-into-byte-vector stream)))
     (babel:octets-to-string byte-contents :encoding :utf-8)))
 
-(defun write-a.txt (type tar-file)
-  (let ((args (list :mode #o644
-                    :mtime *default-mtime*
-                    :uid 0
-                    :gid 0
-                    :data "Hello, world!
-")))
-    (unless (eql type :v7)
-      (setf args (append (list :uname "root" :gname "root") args)))
-    (apply #'tar-file:write-file-entry
-           tar-file
-           "a.txt"
-           args)))
+
+;; Creating entries.
 
-(defun write-a-symlink.txt (type tar-file)
-  (let ((args (list :mode #o777
-                    :mtime *default-mtime*
-                    :uid 0
-                    :gid 0
-                    :linkname "a.txt")))
-    (unless (eql type :v7)
-      (setf args (append (list :uname "root" :gname "root") args)))
-    (apply #'tar-file:write-symbolic-link-entry tar-file
-           "a-symlink.txt"
-           args)))
+(defun write-a.txt (archive)
+  (tar:with-ignored-unsupported-properties ()
+    (tar:with-trancated-unsupported-values ()
+      (tar:write-entry archive
+                       (make-instance 'tar:file-entry
+                                      :size 14
+                                      :atime *default-pax-atime*
+                                      :mtime *default-pax-mtime*
+                                      :gname "root"
+                                      :uname "root"
+                                      :gid 0
+                                      :uid 0
+                                      :mode (list :user-read :user-write :group-read :other-read)
+                                      :name "a.txt"
+                                      :data "Hello, world!
+")))))
 
-(defun write-a-hardlink.txt (type tar-file)
-  (let ((args (list :mode #o644
-                    :mtime *default-mtime*
-                    :uid 0
-                    :gid 0
-                    :linkname "a.txt")))
-    (unless (eql type :v7)
-      (setf args (append (list :uname "root" :gname "root") args)))
-    (apply #'tar-file:write-hard-link-entry tar-file
-           "a-hardlink.txt"
-           args)))
+(defun write-a-symlink.txt (archive)
+  (tar:with-ignored-unsupported-properties ()
+    (tar:with-trancated-unsupported-values ()
+      (tar:write-entry archive
+                       (make-instance 'tar:symbolic-link-entry
+                                      :atime *default-pax-atime*
+                                      :mtime *default-pax-mtime*
+                                      :gname "root"
+                                      :uname "root"
+                                      :gid 0
+                                      :uid 0
+                                      :mode (list :user-read :user-write :user-exec
+                                                  :group-read :group-write :group-exec
+                                                  :other-read :other-write :other-exec)
+                                      :name "a-symlink.txt"
+                                      :linkname "a.txt")))))
 
-(defun read-sparse.txt-attr (type entry)
-  (declare (ignore type))
-  (para:is equal "./PaxHeaders/sparse.txt" (tar-file:name entry))
-  (para:is equal "" (tar-file:uname entry))
-  (para:is equal "" (tar-file:gname entry))
-  (para:is = #o644 (tar-file:mode entry))
-  (para:is = *default-mtime* (tar-file:mtime entry))
-  (para:is = 0 (tar-file:uid entry))
-  (para:is = 0 (tar-file:gid entry))
-  (para:is equal *default-pax-mtime* (tar-file:attribute entry "mtime"))
-  (para:is equal *default-pax-atime* (tar-file:attribute entry "atime"))
-  (para:is equal "1" (tar-file:attribute entry "GNU.sparse.major"))
-  (para:is equal "0" (tar-file:attribute entry "GNU.sparse.minor"))
-  (para:is equal "sparse.txt" (tar-file:attribute entry "GNU.sparse.name"))
-  (para:is equal "5242880" (tar-file:attribute entry "GNU.sparse.realsize")))
+(defun write-a-hardlink.txt (archive)
+  (tar:with-ignored-unsupported-properties ()
+    (tar:with-trancated-unsupported-values ()
+      (tar:write-entry archive
+                       (make-instance 'tar:hard-link-entry
+                                      :atime *default-pax-atime*
+                                      :mtime *default-pax-mtime*
+                                      :gname "root"
+                                      :uname "root"
+                                      :gid 0
+                                      :uid 0
+                                      :mode (list :user-read :user-write :group-read :other-read)
+                                      :name "a-hardlink.txt"
+                                      :linkname "a.txt")))))
 
-(defun write-fifo (type tar-file)
-  (declare (ignore type))
-  (tar-file:write-fifo-entry tar-file
-                             "fifo"
-                             :uname "root" :gname "root"
-                             :mode #o644
-                             :mtime *default-mtime*
-                             :uid 0
-                             :gid 0))
+(defun write-fifo (archive)
+  (tar:with-ignored-unsupported-properties ()
+    (tar:with-trancated-unsupported-values ()
+      (tar:write-entry archive
+                       (make-instance 'tar:fifo-entry
+                                      :atime *default-pax-atime*
+                                      :mtime *default-pax-mtime*
+                                      :gname "root"
+                                      :uname "root"
+                                      :uid 0
+                                      :gid 0
+                                      :mode (list :user-read :user-write :group-read :other-read)
+                                      :name "fifo")))))
 
-(defun write-sda1 (type tar-file)
-  (declare (ignore type))
-  (tar-file:write-block-device-entry tar-file
-                                     "sda1"
-                                     :uname "root" :gname "root"
-                                     :mode #o644
-                                     :mtime *default-mtime*
-                                     :uid 0
-                                     :gid 0
-                                     :devmajor 8
-                                     :devminor 1))
+(defun write-sda1 (archive)
+  (tar:with-ignored-unsupported-properties ()
+    (tar:with-trancated-unsupported-values ()
+      (tar:write-entry archive
+                       (make-instance 'tar:block-device-entry
+                                      :name "sda1"
+                                      :atime *default-pax-atime*
+                                      :mtime *default-pax-mtime*
+                                      :uname "root"
+                                      :gname "root"
+                                      :uid 0
+                                      :gid 0
+                                      :mode (list :user-read :user-write :group-read :other-read)
+                                      :devmajor 8
+                                      :devminor 1)))))
 
-(defun write-tty0 (type tar-file)
-  (declare (ignore type))
-  (tar-file:write-character-device-entry tar-file
-                                         "tty0"
-                                         :uname "root" :gname "root"
-                                         :mode #o644
-                                         :mtime *default-mtime*
-                                         :uid 0
-                                         :gid 0
-                                         :devmajor 4
-                                         :devminor 0))
+(defun write-tty0 (archive)
+  (tar:with-ignored-unsupported-properties ()
+    (tar:with-trancated-unsupported-values ()
+      (tar:write-entry archive
+                       (make-instance 'tar:character-device-entry
+                                      :name "tty0"
+                                      :atime *default-pax-atime*
+                                      :mtime *default-pax-mtime*
+                                      :uname "root"
+                                      :gname "root"
+                                      :uid 0
+                                      :gid 0
+                                      :mode (list :user-read :user-write :group-read :other-read)
+                                      :devmajor 4
+                                      :devminor 0)))))
 
 (defun read-a.txt (type entry)
   (para:is equal "a.txt" (tar:name entry))

@@ -17,16 +17,18 @@
                (:file "conditions" :depends-on ("package"))
                (:file "docs" :depends-on ("package"))
                (:file "entry" :depends-on ("package" "utils"))
-               (:file "gnu-archive" :depends-on ("package" "archive" "utils"))
+               (:file "gnu-archive" :depends-on ("package" "archive" "utils" "validation"))
                (:file "package")
-               (:file "pax-archive" :depends-on ("package" "archive" "utils"))
-               (:file "ustar-archive" :depends-on ("package" "archive" "utils"))
+               (:file "pax-archive" :depends-on ("package" "archive" "utils" "validation"))
+               (:file "ustar-archive" :depends-on ("package" "archive" "utils" "validation"))
                (:file "utils" :depends-on ("package"))
-               (:file "v7-archive" :depends-on ("package" "archive"))))
+               (:file "v7-archive" :depends-on ("package" "archive" "validation"))
+               (:file "validation" :depends-on ("package" "entry"))))
 
 (defsystem #:tar/test
   :pathname "test"
   :components ((:file "package")
                (:file "read" :depends-on ("package" "shared"))
-               (:file "shared" :depends-on ("package")))
+               (:file "shared" :depends-on ("package"))
+               (:file "write" :depends-on ("package" "shared")))
   :depends-on (#:tar #:parachute))

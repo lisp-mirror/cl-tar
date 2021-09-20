@@ -38,9 +38,21 @@
       (local-time:unix-to-timestamp (parse-integer whole)
                                     :nsec nsecs))))
 
+(defun timestamp-to-string (timestamp)
+  (let ((raw-string (format nil "~D.~9,0D" (local-time:timestamp-to-unix timestamp)
+                            (local-time:nsec-of timestamp))))
+    (loop :while (eql (aref raw-string (1- (length raw-string))) #\0)
+          :do (setf raw-string (subseq raw-string 0 (1- (length raw-string)))))
+    raw-string))
+
 (defun tar-file-entry-with-prefix-name (entry)
   (let* ((prefix (tar-file:prefix entry))
          (name (tar-file:name entry)))
     (if (equal "" prefix)
         name
         (concatenate 'string prefix "/" name))))
+
+(defun maybe-truncate (string length)
+  (if (<= (length string) length)
+      string
+      (subseq string 0 length)))

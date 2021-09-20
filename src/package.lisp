@@ -14,6 +14,7 @@
    #:with-open-archive
 
    #:read-entry
+   #:write-entry
    #:do-entries
 
    #:name
@@ -43,4 +44,5 @@
    #:tar-error
    #:unsupported-property
    #:ignore-unsupported-property
-   #:with-ignored-unsupported-properties))
+   #:with-ignored-unsupported-properties
+   #:with-trancated-unsupported-values))

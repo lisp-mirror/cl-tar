@@ -11,6 +11,9 @@
   (or (not (null (member property '(atime ctime uname gname))))
       (call-next-method)))
 
+
+;; Reading
+
 (defmethod convert-from-physical-entry ((archive gnu-archive)
                                         (physical-entry tar-file:gnu-long-name-entry)
                                         &rest overrides)
@@ -37,8 +40,8 @@
                                         (physical-entry tar-file:file-entry)
                                         &rest overrides)
   (apply #'make-instance 'file-entry
-         :archive archive
-         :physical-entry physical-entry
+         :%archive archive
+         :%physical-entry physical-entry
          (append overrides
                  (list
                   :name (tar-file:name physical-entry)
@@ -56,7 +59,7 @@
                                         (physical-entry tar-file:directory-entry)
                                         &rest overrides)
   (apply #'make-instance 'directory-entry
-         :archive archive
+         :%archive archive
          (append overrides
                  (list
                   :name (tar-file:name physical-entry)
@@ -72,7 +75,7 @@
                                         (physical-entry tar-file:symbolic-link-entry)
                                         &rest overrides)
   (apply #'make-instance 'symbolic-link-entry
-         :archive archive
+         :%archive archive
          (append overrides
                  (list
                   :name (tar-file:name physical-entry)
@@ -90,7 +93,7 @@
                                         (physical-entry tar-file:hard-link-entry)
                                         &rest overrides)
   (apply #'make-instance 'hard-link-entry
-         :archive archive
+         :%archive archive
          (append overrides
                  (list
                   :name (tar-file:name physical-entry)
@@ -108,7 +111,7 @@
                                         (physical-entry tar-file:character-device-entry)
                                         &rest overrides)
   (apply #'make-instance 'character-device-entry
-         :archive archive
+         :%archive archive
          (append overrides
                  (list
                   :name (tar-file:name physical-entry)
@@ -127,7 +130,7 @@
                                         (physical-entry tar-file:block-device-entry)
                                         &rest overrides)
   (apply #'make-instance 'block-device-entry
-         :archive archive
+         :%archive archive
          (append overrides
                  (list
                   :name (tar-file:name physical-entry)
@@ -146,7 +149,7 @@
                                         (physical-entry tar-file:fifo-entry)
                                         &rest overrides)
   (apply #'make-instance 'fifo-entry
-         :archive archive
+         :%archive archive
          (append overrides
                  (list
                   :name (tar-file:name physical-entry)

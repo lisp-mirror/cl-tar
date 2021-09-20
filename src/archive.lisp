@@ -22,6 +22,14 @@
     (unless (null raw-entry)
       (convert-from-physical-entry archive raw-entry))))
 
+(defgeneric write-entry (archive entry)
+  (:method ((archive archive) entry)
+    (check-properties archive entry)
+    (%write-entry archive entry)
+    entry))
+
+(defgeneric %write-entry (archive entry &rest overrides))
+
 (defgeneric convert-from-physical-entry (archive physical-entry &rest overrides))
 
 (defgeneric archive-supports-property-p (archive property))
@@ -34,11 +42,19 @@
     type)
   (:method ((type (eql 'v7-archive)))
     'tar-file:v7-tar-file)
+  (:method ((type (eql :v7)))
+    'tar-file:v7-tar-file)
   (:method ((type (eql 'ustar-archive)))
+    'tar-file:ustar-tar-file)
+  (:method ((type (eql :ustar)))
     'tar-file:ustar-tar-file)
   (:method ((type (eql 'pax-archive)))
     'tar-file:ustar-tar-file)
+  (:method ((type (eql :pax)))
+    'tar-file:ustar-tar-file)
   (:method ((type (eql 'gnu-archive)))
+    'tar-file:gnu-tar-file)
+  (:method ((type (eql :gnu)))
     'tar-file:gnu-tar-file))
 
 (defgeneric tar-file-to-archive-type (tar-file)
@@ -76,7 +92,7 @@
                                            :direction direction
                                            :blocking-factor blocking-factor
                                            :header-encoding header-encoding))
-         (archive-type (if (eql type :auto)
+         (archive-type (if (keywordp type)
                            (tar-file-to-archive-type tar-file)
                            type)))
     (make-instance archive-type :file tar-file

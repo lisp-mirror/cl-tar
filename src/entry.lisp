@@ -4,6 +4,14 @@
 
 (in-package #:tar)
 
+(defun permissions-list-p (list)
+  (and (listp list)
+       (alexandria:proper-list-p list)
+       (null (set-difference list +mode-permissions+))))
+
+(deftype mode-list ()
+  `(and list (satisfies permissions-list-p)))
+
 (defmacro define-entry-property (name type)
   `(progn
      (defgeneric ,name (entry)
@@ -25,7 +33,8 @@
                  (string-downcase (string name))
                  type))
        (:method :around (entry)
-         (if (archive-supports-property-p (archive entry) ',name)
+         (if (or (not (slot-boundp entry 'archive))
+                 (archive-supports-property-p (archive entry) ',name))
              (call-next-method)
              (restart-case
                  (error 'unsupported-property :name ',name)
@@ -42,7 +51,8 @@
                  (string-downcase (string name))
                  type))
        (:method :around (value entry)
-         (if (archive-supports-property-p (archive entry) ',name)
+         (if (or (not (slot-boundp entry 'archive))
+                 (archive-supports-property-p (archive entry) ',name))
              (call-next-method)
              (restart-case
                  (error 'unsupported-property :name ',name)
@@ -50,23 +60,26 @@
                  value)))))))
 
 (define-entry-property name string)
-(define-entry-property mode list)
+(define-entry-property mode mode-list)
 (define-entry-property uid (integer 0))
 (define-entry-property gid (integer 0))
 (define-entry-property mtime local-time:timestamp)
 (define-entry-property size (integer 0))
 (define-entry-property devmajor (integer 0))
 (define-entry-property devminor (integer 0))
-(define-entry-property linkname (integer 0))
+(define-entry-property linkname string)
 
 (define-optional-entry-property uname string)
 (define-optional-entry-property gname string)
 (define-optional-entry-property atime local-time:timestamp)
 (define-optional-entry-property ctime local-time:timestamp)
 
+(defgeneric entry-property-slot-names (entry)
+  (:method-combination append))
+
 (defclass entry ()
   ((archive
-    :initarg :archive
+    :initarg :%archive
     :accessor archive)
    (name
     :initarg :name
@@ -109,10 +122,16 @@
 UID, GID, and MTIME. Other common properties are UNAME, GNAME, ATIME, and
 CTIME."))
 
+(defmethod entry-property-slot-names append ((entry entry))
+  (list 'name 'mode 'uid 'gid 'uname 'gname 'mtime 'atime 'ctime))
+
 (defclass has-data-mixin ()
   ((physical-entry
-    :initarg :physical-entry
-    :reader physical-entry)))
+    :initarg :%physical-entry
+    :reader physical-entry)
+   (data
+    :initarg :data
+    :reader data)))
 
 (defclass file-entry (entry has-data-mixin)
   ((size
@@ -120,23 +139,32 @@ CTIME."))
     :type integer
     :accessor size)))
 
+(defmethod entry-property-slot-names append ((entry file-entry))
+  (list 'size))
+
 (defclass directory-entry (entry)
   ((size
     :initarg :size
     :type integer
     :accessor size)))
 
-(defclass symbolic-link-entry (entry)
+(defmethod entry-property-slot-names append ((entry directory-entry))
+  (list 'size))
+
+(defclass link-entry (entry)
   ((linkname
     :initarg :linkname
     :type string
     :accessor linkname)))
 
-(defclass hard-link-entry (entry)
-  ((linkname
-    :initarg :linkname
-    :type string
-    :accessor linkname)))
+(defmethod entry-property-slot-names append ((entry link-entry))
+  (list 'linkname))
+
+(defclass symbolic-link-entry (link-entry)
+  ())
+
+(defclass hard-link-entry (link-entry)
+  ())
 
 (defclass fifo-entry (entry)
   ())
@@ -151,6 +179,9 @@ CTIME."))
     :type integer
     :accessor devminor)))
 
+(defmethod entry-property-slot-names append ((entry device-entry))
+  (list 'devmajor 'devminor))
+
 (defclass block-device-entry (device-entry)
   ())
 
@@ -162,6 +193,9 @@ CTIME."))
     :initarg :size
     :type integer
     :accessor size)))
+
+(defmethod entry-property-slot-names append ((entry unknown-entry))
+  (list 'size))
 
 (defgeneric make-entry-stream (entry))
 
