@@ -9,7 +9,6 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 :sources
-(:implicit-file :type :file-system :system-files ("tar-simple-create.asd"))
 (:implicit-file :type :file-system :system-files ("tar-extract.asd"))
 (:implicit-file :type :file-system :system-files ("tar-simple-extract.asd"))
 (:implicit-file :type :file-system :system-files ("tar-common-extract.asd"))
@@ -27,7 +26,6 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 :requirements
-(:asd-file :name "tar-simple-create.asd")
 (:asd-file :name "tar-extract.asd")
 (:asd-file :name "tar-simple-extract.asd")
 (:asd-file :name "tar-common-extract.asd")
@@ -103,8 +101,6 @@
  ("tar-common-extract"))
 ("tar-extract.asd" :version :newest :source :implicit-file :systems
  ("tar-extract" "tar-extract/test"))
-("tar-simple-create.asd" :version :newest :source :implicit-file :systems
- ("tar-simple-create" "tar-simple-create/test"))
 ("tar-simple-extract.asd" :version :newest :source :implicit-file :systems
  ("tar-simple-extract" "tar-simple-extract/test"))
 ("tar.asd" :version :newest :source :implicit-file :systems ("tar" "tar/test"))
@@ -187,7 +183,6 @@
 ("colorize" ((:system :name "3bmd-ext-code-blocks") (:system :name "colorize")))
 
 ("doc" ((:system :name "tar-simple-extract") (:system :name "40ants-doc"))
- ((:system :name "tar-simple-create") (:system :name "40ants-doc"))
  ((:system :name "tar-file") (:system :name "40ants-doc"))
  ((:system :name "tar-extract") (:system :name "40ants-doc"))
  ((:system :name "tar-common-extract") (:system :name "40ants-doc"))
@@ -214,7 +209,6 @@
 
 ("local-time"
  ((:system :name "tar-simple-extract") (:system :name "local-time"))
- ((:system :name "tar-simple-create") (:system :name "local-time"))
  ((:system :name "tar-extract") (:system :name "local-time"))
  ((:system :name "tar") (:system :name "local-time")))
 
@@ -223,14 +217,12 @@
  (t (:system :name "named-readtables")))
 
 ("osicat" ((:system :name "tar-simple-extract/test") (:system :name "osicat"))
- ((:system :name "tar-simple-create/test") (:system :name "osicat"))
  ((:system :name "tar-extract") (:system :name "osicat"))
  ((:system :name "osicat/tests") (:system :name "osicat"))
  (t (:project :name "osicat" :branch "at-functions" :source :implicit-vcs)))
 
 ("parachute" ((:system :name "tar/test") (:system :name "parachute"))
  ((:system :name "tar-simple-extract/test") (:system :name "parachute"))
- ((:system :name "tar-simple-create/test") (:system :name "parachute"))
  ((:system :name "tar-file/test") (:system :name "parachute"))
  ((:system :name "tar-extract/test") (:system :name "parachute")))
 
@@ -257,10 +249,6 @@
  ((:system :name "tar-extract/test") (:system :name "tar-extract"))
  (t (:asd-file :name "tar-extract.asd")))
 
-("tar-simple-create.asd"
- ((:system :name "tar-simple-create/test") (:system :name "tar-simple-create"))
- (t (:asd-file :name "tar-simple-create.asd")))
-
 ("tar-simple-extract.asd"
  ((:system :name "tar-simple-extract/test")
   (:system :name "tar-simple-extract"))
@@ -268,7 +256,6 @@
 
 ("tar.asd" ((:system :name "tar/test") (:system :name "tar"))
  ((:system :name "tar-simple-extract") (:system :name "tar"))
- ((:system :name "tar-simple-create") (:system :name "tar"))
  ((:system :name "tar-extract") (:system :name "tar"))
  ((:system :name "tar-common-extract") (:system :name "tar"))
  (t (:asd-file :name "tar.asd")))

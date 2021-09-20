@@ -38,4 +38,3 @@
 (:asd "tar-common-extract.asd")
 (:asd "tar-simple-extract.asd")
 (:asd "tar-extract.asd")
-(:asd "tar-simple-create.asd")
