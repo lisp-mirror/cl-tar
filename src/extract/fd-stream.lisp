@@ -150,7 +150,8 @@
       (t
        (setf flags (logior flags nix:o-excl))))
 
-    (if (equal name "")
+    (if (or (null name)
+            (equal name ""))
         (make-instance 'fd-stream :fd parent-dir-handle)
         (unwind-protect
              (handler-case
