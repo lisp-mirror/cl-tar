@@ -128,7 +128,6 @@
          (restart-case
              (error 'unsupported-property :name slot)
            (ignore-unsupported-property ()
-             :test (lambda (c) (typep c 'unsupported-property))
              (go :end))))
        (check-property-for-writing archive entry slot)
      :end)))
