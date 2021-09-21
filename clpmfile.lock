@@ -90,7 +90,7 @@
 ("local-time" :version "2021-01-24" :source "quicklisp" :systems ("local-time"))
 ("named-readtables" :version "2021-05-31" :source "quicklisp" :systems
  ("named-readtables"))
-("osicat" :version (:commit "2b3f4d1f1596f97518da170e47d6714e437f0f6e") :source
+("osicat" :version (:commit "6137b6e14397a1d28de319b3dacbdc62f418e79c") :source
  :implicit-vcs :systems ("osicat" "osicat/tests"))
 ("parachute" :version "2021-08-07" :source "quicklisp" :systems ("parachute"))
 ("pythonic-string-reader" :version "2018-07-11" :source "quicklisp" :systems
