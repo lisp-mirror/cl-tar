@@ -17,6 +17,8 @@
    #:write-entry
    #:do-entries
 
+   #:mode-list
+
    #:name
    #:size
    #:uname
@@ -24,6 +26,7 @@
    #:mode
    #:mtime
    #:atime
+   #:ctime
    #:uid
    #:gid
    #:linkname
@@ -44,5 +47,12 @@
    #:tar-error
    #:unsupported-property
    #:ignore-unsupported-property
+   #:required-property-missing
+   #:required-property-missing-name
+   #:unsupported-property-value
+   #:unsupported-property-value-name
+   #:unsupported-property-value-value
+   #:property-value-too-long
+   #:truncate-value
    #:with-ignored-unsupported-properties
-   #:with-trancated-unsupported-values))
+   #:with-truncated-unsupported-values))

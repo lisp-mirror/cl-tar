@@ -5,7 +5,9 @@
 (in-package #:tar)
 
 (defclass v7-archive (archive)
-  ())
+  ()
+  (:documentation
+   "A very early archive format."))
 
 
 ;; Reading

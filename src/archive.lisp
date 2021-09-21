@@ -13,9 +13,13 @@
     :reader archive-file)
    (direction
     :initarg :direction
-    :reader archive-direction)))
+    :reader archive-direction))
+  (:documentation
+   "The base class of all archives."))
 
-(defgeneric read-entry (archive))
+(defgeneric read-entry (archive)
+  (:documentation
+   "Read an ENTRY from ARCHIVE."))
 
 (defmethod read-entry ((archive archive))
   (let ((raw-entry (tar-file:read-entry (archive-file archive))))
@@ -23,6 +27,8 @@
       (convert-from-physical-entry archive raw-entry))))
 
 (defgeneric write-entry (archive entry)
+  (:documentation
+   "Write ENTRY to ARCHIVE.")
   (:method ((archive archive) entry)
     (check-properties archive entry)
     (%write-entry archive entry)
@@ -74,6 +80,18 @@
                        (if-does-not-exist nil if-does-not-exist-supplied-p)
                        (blocking-factor 20)
                        (header-encoding tar-file:*default-header-encoding*))
+  "Create a tar archive object backed by STREAM-OR-PATH. If a stream, it should
+not be read from or written to any more.
+
+DIRECTION is either :INPUT or :OUTPUT.
+
+BLOCKING-FACTOR is an integer that specifies how many 512-byte blocks should be
+read from or written to STREAM at any one time.
+
+TYPE is either AUTO or a class designator for a subclass of ARCHIVE. If :AUTO,
+the appropriate class will be determined by looking at the first tar header.
+
+HEADER-ENCODING is an encoding specifier recognized by Babel."
   (assert (member direction '(:input :output)))
   (let* ((stream (if (streamp stream-or-path)
                      stream-or-path
@@ -99,7 +117,11 @@
                                 :direction direction
                                 :opened-stream (unless (streamp stream-or-path)
                                                  stream))))
-(defgeneric close-archive (archive))
+(defgeneric close-archive (archive)
+  (:documentation
+   "Close the ARCHIVE, performing any finalization as necessary. If a pathname
+was passed to OPEN-ARCHIVE, then the underlying stream is closed, otherwise it
+remains open."))
 
 (defmethod close-archive ((archive archive))
   (when (eql (archive-direction archive) :output)
@@ -126,6 +148,10 @@
                                 if-exists if-does-not-exist
                                 blocking-factor header-encoding)
                              &body body)
+  "Evaluate BODY with ARCHIVE-VAR bound to an instance of ARCHIVE. See
+OPEN-ARCHIVE for more discussion of the arguments. If STREAM-OR-PATH is a path,
+the underlying stream is closed upon exiting the macro. If it is a stream, it
+remains open."
   (declare (ignore type direction if-exists if-does-not-exist blocking-factor header-encoding))
   `(call-with-open-archive
     (lambda (,archive-var) ,@body)

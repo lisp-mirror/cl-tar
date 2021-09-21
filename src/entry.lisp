@@ -10,6 +10,9 @@
        (null (set-difference list +mode-permissions+))))
 
 (deftype mode-list ()
+  "A list consisting of a subset of:
+(:SET-USER-ID :SET-GROUP-ID :STICKY :USER-READ :USER-WRITE :USER-EXEC
+:GROUP-READ :GROUP-WRITE :GROUP-EXEC :OTHER-READ :OTHER-WRITE :OTHER-EXEC)"
   `(and list (satisfies permissions-list-p)))
 
 (defmacro define-entry-property (name type)
@@ -137,7 +140,9 @@ CTIME."))
   ((size
     :initarg :size
     :type integer
-    :accessor size)))
+    :accessor size))
+  (:documentation
+   "An entry representing a regular file."))
 
 (defmethod entry-property-slot-names append ((entry file-entry))
   (list 'size))
@@ -147,7 +152,9 @@ CTIME."))
     :initarg :size
     :initform 0
     :type integer
-    :accessor size)))
+    :accessor size))
+  (:documentation
+   "An entry representing a directory."))
 
 (defmethod entry-property-slot-names append ((entry directory-entry))
   (list 'size))
@@ -162,13 +169,19 @@ CTIME."))
   (list 'linkname))
 
 (defclass symbolic-link-entry (link-entry)
-  ())
+  ()
+  (:documentation
+   "An entry representing a symbolic link."))
 
 (defclass hard-link-entry (link-entry)
-  ())
+  ()
+  (:documentation
+   "An entry representing a hard link."))
 
 (defclass fifo-entry (entry)
-  ())
+  ()
+  (:documentation
+   "An entry representing a FIFO."))
 
 (defclass device-entry (entry)
   ((devmajor
@@ -184,21 +197,37 @@ CTIME."))
   (list 'devmajor 'devminor))
 
 (defclass block-device-entry (device-entry)
-  ())
+  ()
+  (:documentation
+   "An entry representing a block device."))
 
 (defclass character-device-entry (device-entry)
-  ())
+  ()
+  (:documentation
+   "An entry representing a character device."))
 
 (defclass unknown-entry (entry has-data-mixin)
   ((size
     :initarg :size
     :type integer
-    :accessor size)))
+    :accessor size))
+  (:documentation
+   "An entry representing an unknown entry."))
 
 (defmethod entry-property-slot-names append ((entry unknown-entry))
   (list 'size))
 
-(defgeneric make-entry-stream (entry))
+(defgeneric make-entry-stream (entry)
+  (:documentation
+   "Return a binary stream with the contents of ENTRY. Depending on the the
+type of stream underlying the archive (if it is seekable or not) and the
+BLOCKING-FACTOR given to OPEN-ARCHIVE, this may be callable either once or
+multiple times per entry, may or may not be callable after the next call to
+READ-ENTRY, and the the returned stream may or may not be readable after the
+next call to READ-ENTRY.
+
+For maximum compatibility, you should call this only once per ENTRY and
+completely read from the stream before calling READ-ENTRY again."))
 
 (defmethod make-entry-stream ((entry has-data-mixin))
   (tar-file:make-entry-stream (physical-entry entry)))

@@ -58,7 +58,7 @@
 
 (defun write-a.txt (archive)
   (tar:with-ignored-unsupported-properties ()
-    (tar:with-trancated-unsupported-values ()
+    (tar:with-truncated-unsupported-values ()
       (tar:write-entry archive
                        (make-instance 'tar:file-entry
                                       :size 14
@@ -75,7 +75,7 @@
 
 (defun write-a-symlink.txt (archive)
   (tar:with-ignored-unsupported-properties ()
-    (tar:with-trancated-unsupported-values ()
+    (tar:with-truncated-unsupported-values ()
       (tar:write-entry archive
                        (make-instance 'tar:symbolic-link-entry
                                       :atime *default-pax-atime*
@@ -92,7 +92,7 @@
 
 (defun write-a-hardlink.txt (archive)
   (tar:with-ignored-unsupported-properties ()
-    (tar:with-trancated-unsupported-values ()
+    (tar:with-truncated-unsupported-values ()
       (tar:write-entry archive
                        (make-instance 'tar:hard-link-entry
                                       :atime *default-pax-atime*
@@ -107,7 +107,7 @@
 
 (defun write-fifo (archive)
   (tar:with-ignored-unsupported-properties ()
-    (tar:with-trancated-unsupported-values ()
+    (tar:with-truncated-unsupported-values ()
       (tar:write-entry archive
                        (make-instance 'tar:fifo-entry
                                       :atime *default-pax-atime*
@@ -121,7 +121,7 @@
 
 (defun write-sda1 (archive)
   (tar:with-ignored-unsupported-properties ()
-    (tar:with-trancated-unsupported-values ()
+    (tar:with-truncated-unsupported-values ()
       (tar:write-entry archive
                        (make-instance 'tar:block-device-entry
                                       :name "sda1"
@@ -137,7 +137,7 @@
 
 (defun write-tty0 (archive)
   (tar:with-ignored-unsupported-properties ()
-    (tar:with-trancated-unsupported-values ()
+    (tar:with-truncated-unsupported-values ()
       (tar:write-entry archive
                        (make-instance 'tar:character-device-entry
                                       :name "tty0"

@@ -54,10 +54,10 @@ your machine.
 
 ## tar-extract
 
-The `tar-extract` system is an as yet uncommited work-in-progess. It attempts
-to provide full extraction functionality. As such, it is a much more complex
-beast and likely does not work on all implementation/OS combinations. Patches
-are always welcome to make it more portable.
+The `tar-extract` system attempts to provide full extraction functionality. As
+such, it is a much more complex beast and likely does not work on all
+implementation/OS combinations. Patches are always welcome to make it more
+portable.
 
 This system does not support extracting the following entry types on Windows:
 

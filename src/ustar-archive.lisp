@@ -5,7 +5,10 @@
 (in-package #:tar)
 
 (defclass ustar-archive (archive)
-  ())
+  ()
+  (:documentation
+   "A ustar archive that adds more fields to the header when compared to
+V7-ARCHIVEs."))
 
 (defun split-name (name)
   (if (<= (length name) 100)

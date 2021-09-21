@@ -7,7 +7,11 @@
 (defclass pax-archive (ustar-archive)
   ((default-attributes
     :initform nil
-    :reader archive-default-attributes)))
+    :reader archive-default-attributes))
+  (:documentation
+   "An archive as specified by POSIX. Uses multiple physical entries to
+represent a single logical entry when values do not fit into the standard
+USTAR-ARCHIVE header."))
 
 (defmethod archive-supports-property-p ((archive pax-archive) property)
   (or (not (null (member property '(atime ctime))))

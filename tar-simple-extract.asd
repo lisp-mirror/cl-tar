@@ -19,5 +19,6 @@
 (defsystem #:tar-simple-extract/test
   :pathname "test/simple-extract"
   :components ((:file "package")
-               (:file "v7" :depends-on ("package")))
+               (:file "v7" :depends-on ("package"))
+               (:file "stress" :depends-on ("package")))
   :depends-on (#:tar-simple-extract #:parachute #:osicat))

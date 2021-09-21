@@ -5,7 +5,9 @@
 (in-package #:tar)
 
 (defclass gnu-archive (archive)
-  ())
+  ()
+  (:documentation
+   "An archive that uses GNU specific extensions."))
 
 (defmethod archive-supports-property-p ((archive gnu-archive) property)
   (or (not (null (member property '(atime ctime uname gname))))

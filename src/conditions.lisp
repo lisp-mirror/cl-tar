@@ -49,7 +49,10 @@ VALUE is returned from any attempt to access them."
   ((name
     :initarg :name
     :reader required-property-missing-name
-    :documentation "The name of the missing property.")))
+    :documentation "The name of the missing property."))
+  (:documentation
+   "Signaled when trying to WRITE-ENTRY with a required property that is
+missing."))
 
 (define-condition unsupported-property-value (tar-error)
   ((name
@@ -59,12 +62,19 @@ VALUE is returned from any attempt to access them."
    (value
     :initarg :value
     :reader unsupported-property-value-value
-    :documentation "The value of the unsupported property.")))
+    :documentation "The value of the unsupported property."))
+  (:documentation
+   "Signaled when trying to WRITE-ENTRY with a property that is unsupported by
+the underlying archive type."))
 
 (define-condition property-value-too-long (unsupported-property-value)
-  ())
+  ()
+  (:documentation
+   "Signaled when trying to WRITE-ENTRY with a property that is too long for
+the underlying archive type."))
 
 (defun truncate-value (&optional condition)
+  "Truncate the value and write it to the archive."
   (invoke-restart (find-restart 'truncate-value condition)))
 
 (defun call-with-truncated-unsupported-values (thunk)
@@ -74,5 +84,7 @@ VALUE is returned from any attempt to access them."
                                        (truncate-value c)))))
     (funcall thunk)))
 
-(defmacro with-trancated-unsupported-values (() &body body)
+(defmacro with-truncated-unsupported-values (() &body body)
+  "Evaluate BODY in a context where truncatable values are automatically
+truncated."
   `(call-with-truncated-unsupported-values (lambda () ,@body)))
