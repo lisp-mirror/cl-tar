@@ -15,33 +15,25 @@ test abcl:
   image: clfoundation/abcl
   extends: .test
   script:
-    - $CLPM bundle exec -- abcl --batch --load scripts/run-tar-tests.lisp
-    - $CLPM bundle exec -- abcl --batch --load scripts/run-simple-extract-tests.lisp
-    - $CLPM bundle exec -- abcl --batch --load scripts/run-extract-tests.lisp
+    - $CLPM bundle exec -- abcl --batch --load scripts/run-tests.lisp
 
 test ccl:
   image: clfoundation/ccl
   extends: .test
   script:
-    - $CLPM bundle exec -- ccl -b -l scripts/run-tar-tests.lisp
-    - $CLPM bundle exec -- ccl -b -l scripts/run-simple-extract-tests.lisp
-    - $CLPM bundle exec -- ccl -b -l scripts/run-extract-tests.lisp
+    - $CLPM bundle exec -- ccl -b -l scripts/run-tests.lisp
 
 test ecl:
   image: clfoundation/ecl
   extends: .test
   script:
-    - $CLPM bundle exec -- ecl --shell scripts/run-tar-tests.lisp
-    - $CLPM bundle exec -- ecl --shell scripts/run-simple-extract-tests.lisp
-    - $CLPM bundle exec -- ecl --shell scripts/run-extract-tests.lisp
+    - $CLPM bundle exec -- ecl --shell scripts/run-tests.lisp
 
 test sbcl:
   image: clfoundation/sbcl
   extends: .test
   script:
-    - $CLPM bundle exec -- sbcl --script scripts/run-tar-tests.lisp
-    - $CLPM bundle exec -- sbcl --script scripts/run-simple-extract-tests.lisp
-    - $CLPM bundle exec -- sbcl --script scripts/run-extract-tests.lisp
+    - $CLPM bundle exec -- sbcl --script scripts/run-tests.lisp
 
 generate docs:
   image: clfoundation/sbcl
