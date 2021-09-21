@@ -7,9 +7,16 @@
     :initarg :mtime
     :reader destination-exists-mtime)))
 
-(define-condition directory-is-symbolic-link-error (extraction-error)
+(define-condition extraction-through-symbolic-link-error (extraction-entry-error)
   ((target
-    :initarg :target)))
+    :initarg :target)
+   (pathname
+    :reader extraction-through-symbolic-link-error-pathname
+    :initarg :pathname)))
+
+(define-condition file-exists-in-place-of-directory (extraction-entry-error)
+  ((pathname
+    :initarg :pathname)))
 
 (define-condition destination-is-symbolic-link-error (extraction-error)
   ((target

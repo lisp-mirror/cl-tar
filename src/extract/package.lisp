@@ -22,8 +22,7 @@
 
   ;; conditions
   (:export
-   #:directory-is-symbolic-link-error
-   #:destination-is-symbolic-link-error)
+   #:extraction-through-symbolic-link-error)
 
   (:export
    #:extract-archive))

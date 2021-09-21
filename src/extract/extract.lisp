@@ -214,18 +214,17 @@ non-NIL if the entry should be extracted."
              (case character-devices
                (:skip (skip-entry c)))))
 
-         (destination-is-symbolic-link-error
+         (extraction-through-symbolic-link-error
            (lambda (c)
-             (case if-symbolic-link-exists
-               ((nil :skip) (skip-entry c))
-               (:follow (follow-symbolic-link c))
-               (:supersede (replace-symbolic-link c)))))
-         (directory-is-symbolic-link-error
-           (lambda (c)
-             (case if-directory-symbolic-link-exists
-               ((nil :skip) (skip-entry c))
-               (:follow (follow-symbolic-link c))
-               (:supersede (replace-symbolic-link c)))))
+             (if (uiop:directory-pathname-p (extraction-through-symbolic-link-error-pathname c))
+                 (case if-directory-symbolic-link-exists
+                   ((nil :skip) (skip-entry c))
+                   (:follow (follow-symbolic-link c))
+                   (:supersede (replace-symbolic-link c)))
+                 (case if-symbolic-link-exists
+                   ((nil :skip) (skip-entry c))
+                   (:follow (follow-symbolic-link c))
+                   (:supersede (replace-symbolic-link c))))))
 
          (destination-exists
            (lambda (c)
@@ -317,10 +316,10 @@ non-NIL if the entry should be extracted."
                                   &key
                                     touch no-same-owner numeric-uid mask
                                     if-destination-symbolic-link)
-  (with-open-stream (stream (openat *destination-dir-fd* pn
-                                    (logior nix:s-irusr
-                                            nix:s-iwusr
-                                            nix:s-ixusr)))
+  (with-fd (fd (fd (openat *destination-dir-fd* pn
+                           (logior nix:s-irusr
+                                   nix:s-iwusr
+                                   nix:s-ixusr))))
     (handler-case
         (progn
           ;; Set atime and mtime
@@ -339,9 +338,9 @@ non-NIL if the entry should be extracted."
                         mtime-nsec nix:utime-omit)
                   (setf mtime-sec (local-time:timestamp-to-unix mtime)
                         mtime-nsec (local-time:nsec-of mtime)))
-              (nix:futimens (fd stream) atime-sec atime-nsec mtime-sec mtime-nsec)))
+              (nix:futimens fd atime-sec atime-nsec mtime-sec mtime-nsec)))
           ;; Set permissions
-          (nix:fchmod (fd stream) (tar::permissions-to-mode (set-difference (tar:mode entry)
+          (nix:fchmod fd (tar::permissions-to-mode (set-difference (tar:mode entry)
                                                                             mask)))
           ;; Set owner
           (unless no-same-owner
@@ -353,39 +352,37 @@ non-NIL if the entry should be extracted."
                              (tar:gid entry)
                              (or (nth-value 2 (safe-getgrnam (tar:gname entry)))
                                  (tar:gid entry)))))
-              (nix:fchown (fd stream) owner group)))))))
+              (nix:fchown fd owner group)))))))
 
 (defmethod extract-entry ((entry tar:directory-entry) pn &key &allow-other-keys)
   ;; First, get a handle on the parent
-  (with-open-stream (stream (openat *destination-dir-fd* pn
-                                    (logior nix:s-irusr
-                                            nix:s-iwusr
-                                            nix:s-ixusr)))
+  (with-fd (dirfd (fd (openat *destination-dir-fd* pn
+                              (logior nix:s-irusr
+                                      nix:s-iwusr
+                                      nix:s-ixusr))))
+    (declare (ignore dirfd))
     ;; Enqueue this to later set its properties.
     (push (cons entry pn) *deferred-directories*)))
 
 (defmethod extract-entry ((entry tar:fifo-entry) pn &key mask &allow-other-keys)
-  (let ((dir-fd (open-directory-handle *destination-dir-fd* (uiop:pathname-directory-pathname pn))))
-    (unwind-protect
-         (nix:mkfifoat dir-fd (file-namestring pn) (tar::permissions-to-mode
-                                                    (set-difference (tar:mode entry)
-                                                                    mask)))
-      (unless (eql dir-fd *destination-dir-fd*)
-        (nix:close dir-fd)))))
+  (let ((dir-fd (fd (openat *destination-dir-fd* (uiop:pathname-directory-pathname pn) nix:s-irwxu))))
+    (with-fd (dir-fd)
+      (nix:mkfifoat dir-fd (file-namestring pn) (tar::permissions-to-mode
+                                                 (set-difference (tar:mode entry)
+                                                                 mask))))))
 
 (defmethod extract-entry ((entry tar:symbolic-link-entry) pn &key &allow-other-keys)
-  (let ((dir-fd (open-directory-handle *destination-dir-fd* (uiop:pathname-directory-pathname pn))))
-    (unwind-protect
-         (nix:symlinkat (tar:linkname entry) dir-fd (file-namestring pn))
-      (unless (eql dir-fd *destination-dir-fd*)
-        (nix:close dir-fd)))))
+  (let ((dir-fd (fd (openat *destination-dir-fd* (uiop:pathname-directory-pathname pn) nix:s-irwxu))))
+    (with-fd (dir-fd)
+      (nix:symlinkat (tar:linkname entry) dir-fd (file-namestring pn)))))
 
 (defmethod extract-entry ((entry tar:hard-link-entry) pn &key &allow-other-keys)
-  (let* ((dir-fd (open-directory-handle *destination-dir-fd* (uiop:pathname-directory-pathname pn)))
+  (let* ((dir-fd (fd (openat *destination-dir-fd* (uiop:pathname-directory-pathname pn) nix:s-irwxu)))
          (destination-pn (uiop:parse-unix-namestring (tar:linkname entry)
                                                      :dot-dot :back))
-         (destination-dir-fd (open-directory-handle *destination-dir-fd*
-                                                    (uiop:pathname-directory-pathname destination-pn))))
+         (destination-dir-fd (fd (openat *destination-dir-fd*
+                                         (uiop:pathname-directory-pathname destination-pn)
+                                         nix:s-irwxu))))
     (unwind-protect
          (nix:linkat destination-dir-fd (file-namestring destination-pn)
                      dir-fd (file-namestring pn) 0)

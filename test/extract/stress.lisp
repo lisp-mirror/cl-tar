@@ -208,7 +208,7 @@
       (para:fail
           (tar:with-open-archive (a pn)
             (tar-extract:extract-archive a))
-          'tar-extract:directory-is-symbolic-link-error))
+          'tar-extract:extraction-through-symbolic-link-error))
     (with-temp-dir ()
       (nix:mkdir (merge-pathnames "real/") nix:s-irwxu)
       (nix:symlink "real" (merge-pathnames "dir"))
@@ -252,7 +252,7 @@
       (para:fail
           (tar:with-open-archive (a pn)
             (tar-extract:extract-archive a))
-          'tar-extract:destination-is-symbolic-link-error))
+          'tar-extract:extraction-through-symbolic-link-error))
     (with-temp-dir ()
       (nix:mkdir (merge-pathnames "dir/") nix:s-irwxu)
       (nix:symlink "b.txt" (merge-pathnames "dir/a.txt"))
