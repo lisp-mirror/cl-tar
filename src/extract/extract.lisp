@@ -366,9 +366,14 @@ non-NIL if the entry should be extracted."
 (defmethod extract-entry ((entry tar:fifo-entry) pn &key mask &allow-other-keys)
   (let ((dir-fd (fd (openat *destination-dir-fd* (uiop:pathname-directory-pathname pn) nix:s-irwxu))))
     (with-fd (dir-fd)
+      #-darwin
       (nix:mkfifoat dir-fd (file-namestring pn) (tar::permissions-to-mode
                                                  (set-difference (tar:mode entry)
-                                                                 mask))))))
+                                                                 mask)))
+      #+darwin
+      (nix:mkfifo (merge-pathnames pn) (tar::permissions-to-mode
+                                        (set-difference (tar:mode entry)
+                                                        mask))))))
 
 (defmethod extract-entry ((entry tar:symbolic-link-entry) pn &key &allow-other-keys)
   (let ((dir-fd (fd (openat *destination-dir-fd* (uiop:pathname-directory-pathname pn) nix:s-irwxu))))
