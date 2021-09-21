@@ -169,95 +169,95 @@ non-NIL if the entry should be extracted."
         (*deferred-directories* nil)
         *destination-dir-fd*)
     (ensure-directories-exist *default-pathname-defaults*)
-    (setf *destination-dir-fd* (nix:open *default-pathname-defaults*
-                                         (logior nix:o-rdonly
-                                                 nix:o-directory)))
-    (handler-bind
-        ((entry-name-contains-device-error
-           (lambda (c)
-             (case device-pathnames
-               (:allow (continue c))
-               (:skip (skip-entry c))
-               (:relativize (relativize-entry-name c)))))
-         (entry-name-contains-..-error
-           (lambda (c)
-             (case dot-dot
-               (:back (treat-..-as-back c))
-               (:skip (skip-entry c)))))
-         (entry-name-is-absolute-error
-           (lambda (c)
-             (case absolute-pathnames
-               (:allow (continue c))
-               (:skip (skip-entry c))
-               (:relativize (relativize-entry-name c)))))
+    (with-fd (*destination-dir-fd* (nix:open *default-pathname-defaults*
+                                             (logior nix:o-rdonly
+                                                     nix:o-directory)))
+      (handler-bind
+          ((entry-name-contains-device-error
+             (lambda (c)
+               (case device-pathnames
+                 (:allow (continue c))
+                 (:skip (skip-entry c))
+                 (:relativize (relativize-entry-name c)))))
+           (entry-name-contains-..-error
+             (lambda (c)
+               (case dot-dot
+                 (:back (treat-..-as-back c))
+                 (:skip (skip-entry c)))))
+           (entry-name-is-absolute-error
+             (lambda (c)
+               (case absolute-pathnames
+                 (:allow (continue c))
+                 (:skip (skip-entry c))
+                 (:relativize (relativize-entry-name c)))))
 
-         (unsupported-symbolic-link-entry-error
-           (lambda (c)
-             (case symbolic-links
-               (:skip (skip-entry c))
-               (:dereference (dereference-link c)))))
-         (unsupported-hard-link-entry-error
-           (lambda (c)
-             (case hard-links
-               (:skip (skip-entry c))
-               (:dereference (dereference-link c)))))
-         (unsupported-fifo-entry-error
-           (lambda (c)
-             (case fifos
-               (:skip (skip-entry c)))))
-         (unsupported-block-device-entry-error
-           (lambda (c)
-             (case block-devices
-               (:skip (skip-entry c)))))
-         (unsupported-character-device-entry-error
-           (lambda (c)
-             (case character-devices
-               (:skip (skip-entry c)))))
+           (unsupported-symbolic-link-entry-error
+             (lambda (c)
+               (case symbolic-links
+                 (:skip (skip-entry c))
+                 (:dereference (dereference-link c)))))
+           (unsupported-hard-link-entry-error
+             (lambda (c)
+               (case hard-links
+                 (:skip (skip-entry c))
+                 (:dereference (dereference-link c)))))
+           (unsupported-fifo-entry-error
+             (lambda (c)
+               (case fifos
+                 (:skip (skip-entry c)))))
+           (unsupported-block-device-entry-error
+             (lambda (c)
+               (case block-devices
+                 (:skip (skip-entry c)))))
+           (unsupported-character-device-entry-error
+             (lambda (c)
+               (case character-devices
+                 (:skip (skip-entry c)))))
 
-         (extraction-through-symbolic-link-error
-           (lambda (c)
-             (if (uiop:directory-pathname-p (extraction-through-symbolic-link-error-pathname c))
-                 (case if-directory-symbolic-link-exists
-                   ((nil :skip) (skip-entry c))
-                   (:follow (follow-symbolic-link c))
-                   (:supersede (replace-symbolic-link c)))
-                 (case if-symbolic-link-exists
-                   ((nil :skip) (skip-entry c))
-                   (:follow (follow-symbolic-link c))
-                   (:supersede (replace-symbolic-link c))))))
+           (extraction-through-symbolic-link-error
+             (lambda (c)
+               (if (uiop:directory-pathname-p (extraction-through-symbolic-link-error-pathname c))
+                   (case if-directory-symbolic-link-exists
+                     ((nil :skip) (skip-entry c))
+                     (:follow (follow-symbolic-link c))
+                     (:supersede (replace-symbolic-link c)))
+                   (case if-symbolic-link-exists
+                     ((nil :skip) (skip-entry c))
+                     (:follow (follow-symbolic-link c))
+                     (:supersede (replace-symbolic-link c))))))
 
-         (destination-exists
-           (lambda (c)
-             (let ((entry-mtime (tar:mtime (extraction-entry-error-entry c)))
-                   (existing-mtime (destination-exists-mtime c)))
-               (if (local-time:timestamp< entry-mtime existing-mtime)
-                   (case if-newer-exists
-                     ((nil :skip :keep) (skip-entry c))
-                     (:supersede (invoke-restart 'supersede-file))
-                     (:rename-and-delete (invoke-restart 'rename-and-replace-file)))
-                   (case if-exists
-                     ((nil :skip :keep) (skip-entry c))
-                     (:supersede (invoke-restart 'supersede-file))
-                     (:rename-and-delete (invoke-restart 'rename-and-replace-file))))))))
-      (tar:do-entries (entry archive)
-        (let ((*current-entry* entry))
-          (restart-case
-              (let ((pn (compute-extraction-pathname entry (tar:name entry) strip-components)))
-                (when (funcall filter entry pn)
-                  (tar:with-ignored-unsupported-properties ()
-                    (extract-entry entry pn
-                                   :mask mask
-                                   :numeric-uid numeric-uid
-                                   :no-same-owner no-same-owner
-                                   :touch touch))))
-            (skip-entry ()))))
-      (dolist (pair *deferred-directories*)
-        (handle-deferred-directory (car pair) (cdr pair)
-                                   :mask mask
-                                   :numeric-uid numeric-uid
-                                   :no-same-owner no-same-owner
-                                   :touch touch))
-      (values))))
+           (destination-exists
+             (lambda (c)
+               (let ((entry-mtime (tar:mtime (extraction-entry-error-entry c)))
+                     (existing-mtime (destination-exists-mtime c)))
+                 (if (local-time:timestamp< entry-mtime existing-mtime)
+                     (case if-newer-exists
+                       ((nil :skip :keep) (skip-entry c))
+                       (:supersede (invoke-restart 'supersede-file))
+                       (:rename-and-delete (invoke-restart 'rename-and-replace-file)))
+                     (case if-exists
+                       ((nil :skip :keep) (skip-entry c))
+                       (:supersede (invoke-restart 'supersede-file))
+                       (:rename-and-delete (invoke-restart 'rename-and-replace-file))))))))
+        (tar:do-entries (entry archive)
+          (let ((*current-entry* entry))
+            (restart-case
+                (let ((pn (compute-extraction-pathname entry (tar:name entry) strip-components)))
+                  (when (funcall filter entry pn)
+                    (tar:with-ignored-unsupported-properties ()
+                      (extract-entry entry pn
+                                     :mask mask
+                                     :numeric-uid numeric-uid
+                                     :no-same-owner no-same-owner
+                                     :touch touch))))
+              (skip-entry ()))))
+        (dolist (pair *deferred-directories*)
+          (handle-deferred-directory (car pair) (cdr pair)
+                                     :mask mask
+                                     :numeric-uid numeric-uid
+                                     :no-same-owner no-same-owner
+                                     :touch touch))
+        (values)))))
 
 (defgeneric extract-entry (entry pn &key))
 
