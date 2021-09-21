@@ -22,6 +22,7 @@
 (defsystem #:tar-extract/test
   :pathname "test/extract"
   :components ((:file "package")
-               (:file "extract" :depends-on ("package"))
-               (:file "stress" :depends-on ("package")))
+               (:file "utils" :depends-on ("package"))
+               (:file "extract" :depends-on ("package" "utils"))
+               (:file "stress" :depends-on ("package" "utils")))
   :depends-on (#:tar-extract #:parachute))

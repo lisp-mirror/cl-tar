@@ -1,16 +1,5 @@
 (in-package #:tar-simple-extract-test)
 
-(defun call-with-temp-dir (thunk)
-  (let* ((temp-dir (uiop:ensure-directory-pathname
-                    (nix:mkdtemp (namestring (merge-pathnames "cl-tar-" (uiop:temporary-directory))))))
-         (*default-pathname-defaults* (pathname temp-dir)))
-    (unwind-protect
-         (funcall thunk)
-      (uiop:delete-directory-tree temp-dir :validate t))))
-
-(defmacro with-temp-dir (() &body body)
-  `(call-with-temp-dir (lambda () ,@body)))
-
 (para:define-test absolute-pathnames
   (uiop:with-temporary-file (:stream s :pathname pn :type "tar"
                              :element-type '(unsigned-byte 8))

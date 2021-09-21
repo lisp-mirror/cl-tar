@@ -1,29 +1,24 @@
 (in-package #:tar-extract-test)
 
 (para:define-test extract-v7
-  (let ((temp-dir (uiop:ensure-directory-pathname
-                   (osicat-posix:mkdtemp
-                    (namestring (merge-pathnames "cl-tar-"
-                                                 (uiop:temporary-directory)))))))
-    (unwind-protect
-         (tar:with-open-archive (a (asdf:system-relative-pathname
-                                    :tar "test/v7.tar"))
-           (tar-extract:extract-archive a :directory temp-dir)
-           (para:is equal
-                    "Hello, world!
+  (with-temp-dir ()
+    (tar:with-open-archive (a (asdf:system-relative-pathname
+                               :tar "test/v7.tar"))
+      (tar-extract:extract-archive a)
+      (para:is equal
+               "Hello, world!
 "
-                    (uiop:read-file-string (merge-pathnames "a.txt" temp-dir)))
-           (para:is eql
-                    :symbolic-link
-                    (osicat:file-kind (merge-pathnames "a-symlink.txt" temp-dir)))
-           (para:is equal
-                    "a.txt"
-                    (nix:readlink (merge-pathnames "a-symlink.txt" temp-dir)))
-           (para:is equal
-                    "Hello, world!
+               (uiop:read-file-string (merge-pathnames "a.txt")))
+      (para:is eql
+               :symbolic-link
+               (osicat:file-kind (merge-pathnames "a-symlink.txt")))
+      (para:is equal
+               "a.txt"
+               (nix:readlink (merge-pathnames "a-symlink.txt")))
+      (para:is equal
+               "Hello, world!
 "
-                    (uiop:read-file-string (merge-pathnames "a-hardlink.txt" temp-dir))))
-      (uiop:delete-directory-tree temp-dir :validate t))))
+               (uiop:read-file-string (merge-pathnames "a-hardlink.txt"))))))
 
 (para:define-test extract-ustar-1
   (uiop:with-temporary-file (:stream s :pathname pn :type "tar"
@@ -65,26 +60,23 @@
                                                 :group-read
                                                 :other-read))))
     :close-stream
-    (let ((temp-dir (uiop:ensure-directory-pathname
-                     (nix:mkdtemp (namestring (merge-pathnames "cl-tar-" (uiop:temporary-directory)))))))
-      (unwind-protect
-           (tar:with-open-archive (a pn)
-             (tar-extract:extract-archive a :directory temp-dir)
-             (para:is equal
-                      "Hello, world!
+    (with-temp-dir ()
+      (tar:with-open-archive (a pn)
+        (tar-extract:extract-archive a)
+        (para:is equal
+                 "Hello, world!
 "
-                      (uiop:read-file-string (merge-pathnames "a.txt" temp-dir)))
-             (para:is eql
-                      :symbolic-link
-                      (osicat:file-kind (merge-pathnames "a-symlink.txt" temp-dir)))
-             (para:is equal
-                      "a.txt"
-                      (nix:readlink (merge-pathnames "a-symlink.txt" temp-dir)))
-             (para:is equal
-                      "Hello, world!
+                 (uiop:read-file-string (merge-pathnames "a.txt")))
+        (para:is eql
+                 :symbolic-link
+                 (osicat:file-kind (merge-pathnames "a-symlink.txt")))
+        (para:is equal
+                 "a.txt"
+                 (nix:readlink (merge-pathnames "a-symlink.txt")))
+        (para:is equal
+                 "Hello, world!
 "
-                      (uiop:read-file-string (merge-pathnames "a-hardlink.txt" temp-dir))))
-        (uiop:delete-directory-tree temp-dir :validate t)))))
+                 (uiop:read-file-string (merge-pathnames "a-hardlink.txt")))))))
 
 (para:define-test extract-ustar-2
   (uiop:with-temporary-file (:stream s :pathname pn :type "tar"
@@ -136,30 +128,27 @@
                                                 :group-read
                                                 :other-read))))
     :close-stream
-    (let ((temp-dir (uiop:ensure-directory-pathname
-                     (nix:mkdtemp (namestring (merge-pathnames "cl-tar-" (uiop:temporary-directory)))))))
-      (unwind-protect
-           (tar:with-open-archive (a pn)
-             (tar-extract:extract-archive a :directory temp-dir)
-             (para:is equal
-                      "Hello, world!
+    (with-temp-dir ()
+      (tar:with-open-archive (a pn)
+        (tar-extract:extract-archive a)
+        (para:is equal
+                 "Hello, world!
 "
-                      (uiop:read-file-string (merge-pathnames "dir/a.txt" temp-dir)))
-             (para:is eql
-                      :symbolic-link
-                      (osicat:file-kind (merge-pathnames "dir/a-symlink.txt" temp-dir)))
-             (para:is equal
-                      "a.txt"
-                      (nix:readlink (merge-pathnames "dir/a-symlink.txt" temp-dir)))
-             (para:is equal
-                      "Hello, world!
+                 (uiop:read-file-string (merge-pathnames "dir/a.txt")))
+        (para:is eql
+                 :symbolic-link
+                 (osicat:file-kind (merge-pathnames "dir/a-symlink.txt")))
+        (para:is equal
+                 "a.txt"
+                 (nix:readlink (merge-pathnames "dir/a-symlink.txt")))
+        (para:is equal
+                 "Hello, world!
 "
-                      (uiop:read-file-string (merge-pathnames "dir/a-hardlink.txt" temp-dir)))
+                 (uiop:read-file-string (merge-pathnames "dir/a-hardlink.txt")))
 
-             (para:is = 2000 (nix:stat-mtime (nix:stat (merge-pathnames "dir/a.txt" temp-dir))))
-             (para:is = 15 (nix:stat-mtime-nsec (nix:stat (merge-pathnames "dir/a.txt" temp-dir))))
-             (para:is = 2000 (nix:stat-mtime (nix:stat (merge-pathnames "dir/a-hardlink.txt" temp-dir))))
-             (para:is = 15 (nix:stat-mtime-nsec (nix:stat (merge-pathnames "dir/a-hardlink.txt" temp-dir))))
-             (para:is = 2000 (nix:stat-mtime (nix:stat (merge-pathnames "dir/" temp-dir))))
-             (para:is = 10 (nix:stat-mtime-nsec (nix:stat (merge-pathnames "dir/" temp-dir)))))
-        (uiop:delete-directory-tree temp-dir :validate t)))))
+        (para:is = 2000 (nix:stat-mtime (nix:stat (merge-pathnames "dir/a.txt"))))
+        (para:is = 15 (nix:stat-mtime-nsec (nix:stat (merge-pathnames "dir/a.txt"))))
+        (para:is = 2000 (nix:stat-mtime (nix:stat (merge-pathnames "dir/a-hardlink.txt"))))
+        (para:is = 15 (nix:stat-mtime-nsec (nix:stat (merge-pathnames "dir/a-hardlink.txt"))))
+        (para:is = 2000 (nix:stat-mtime (nix:stat (merge-pathnames "dir/"))))
+        (para:is = 10 (nix:stat-mtime-nsec (nix:stat (merge-pathnames "dir/"))))))))
