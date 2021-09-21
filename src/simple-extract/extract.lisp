@@ -231,13 +231,13 @@ non-NIL if the entry should be extracted."
     (dereference-link ()
       (push (list entry pn :hard) *deferred-links*))))
 
-(defmethod simple-extract-entry :before ((entry tar:fifo-entry) pn &key)
+(defmethod simple-extract-entry :before ((entry tar:fifo-entry) pn &key &allow-other-keys)
   (error 'unsupported-fifo-entry-error :entry entry))
 
-(defmethod simple-extract-entry :before ((entry tar:block-device-entry) pn &key)
+(defmethod simple-extract-entry :before ((entry tar:block-device-entry) pn &key &allow-other-keys)
   (error 'unsupported-block-device-entry-error :entry entry))
 
-(defmethod simple-extract-entry :before ((entry tar:character-device-entry) pn &key)
+(defmethod simple-extract-entry :before ((entry tar:character-device-entry) pn &key &allow-other-keys)
   (error 'unsupported-character-device-entry-error :entry entry))
 
 (defmethod simple-extract-entry ((entry tar:entry) pn &key)
