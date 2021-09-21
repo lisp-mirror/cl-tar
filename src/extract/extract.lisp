@@ -170,8 +170,7 @@ non-NIL if the entry should be extracted."
         *destination-dir-fd*)
     (ensure-directories-exist *default-pathname-defaults*)
     (with-fd (*destination-dir-fd* (nix:open *default-pathname-defaults*
-                                             (logior nix:o-rdonly
-                                                     nix:o-directory)))
+                                             nix:o-rdonly))
       (handler-bind
           ((entry-name-contains-device-error
              (lambda (c)
