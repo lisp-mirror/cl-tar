@@ -4,6 +4,8 @@
     (:use :cl)
   ;; Conditions
   (:export
+   #:*current-entry*
+
    #:extraction-error
 
    #:extraction-entry-error

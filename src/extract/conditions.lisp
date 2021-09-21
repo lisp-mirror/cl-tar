@@ -2,6 +2,11 @@
 
 (in-package #:tar-extract)
 
+(define-condition destination-exists (extraction-entry-error file-error)
+  ((mtime
+    :initarg :mtime
+    :reader destination-exists-mtime)))
+
 (define-condition directory-is-symbolic-link-error (extraction-error)
   ((target
     :initarg :target)))

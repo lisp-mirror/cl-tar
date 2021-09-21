@@ -20,5 +20,10 @@
    #:relativize-entry-name
    #:treat-..-as-back)
 
+  ;; conditions
+  (:export
+   #:directory-is-symbolic-link-error
+   #:destination-is-symbolic-link-error)
+
   (:export
    #:extract-archive))

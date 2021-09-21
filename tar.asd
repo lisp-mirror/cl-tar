@@ -15,7 +15,6 @@
                       (error "Tests failed")))
   :components ((:file "archive" :depends-on ("package"))
                (:file "conditions" :depends-on ("package"))
-               (:file "docs" :depends-on ("package"))
                (:file "entry" :depends-on ("package" "utils"))
                (:file "gnu-archive" :depends-on ("package" "archive" "utils" "validation"))
                (:file "package")

@@ -82,32 +82,31 @@ IF-DIRECTORY-SYMBOLIC-LINK-EXISTS controls what happens to existing directories
 that are symlinks. This includes any symlink on the destination path of the
 entry. Defaults to :ERROR. The possible values are:
 
-+ :ERROR: Signal an error
-+ :SUPERSEDE: replace the symlink with a new, empty directory.
-+ :FOLLOW: keep the existing symlink.
++ :ERROR : Signal an error
++ :SUPERSEDE : replace the symlink with a new, empty directory.
++ :FOLLOW : keep the existing symlink.
 
 IF-SYMBOLIC-LINK-EXISTS controls what happesn to existing files that are
 symlinks. Defaults to :ERROR. The possible values are:
 
-+ NIL, :SKIP: Skip the entry.
-+ :FOLLOW: Follow the symlink and write the contents of the entry, respecting
++ NIL, :SKIP : Skip the entry.
++ :FOLLOW : Follow the symlink and write the contents of the entry, respecting
   IF-NEWER-EXISTS and IF-EXISTS.
-+ :SUPERSEDE: Replace the symlink.
++ :SUPERSEDE : Replace the symlink.
 
 
 IF-NEWER-EXISTS controls what happens to files that already exist within
 DIRECTORY if extracting ARCHIVE would overwrite them and the existing file has
 a more recent mtime. It defaults to :ERROR. The possible values are:
 
-+ NIL, :SKIP: existing files are skipped
-+ :SUPERSEDE, :RENAME, :RENAME-AND-DELETE, :NEW-VERSION, :ERROR: Same behavior as OPEN.
++ NIL, :SKIP, :KEEP : existing files are skipped
++ :SUPERSEDE, :RENAME-AND-DELETE, :ERROR : Same behavior as OPEN.
 
 IF-EXISTS controls what happens to files that already exist within
 DIRECTORY. It defaults to :ERROR. The possible values are:
 
-+ NIL, :SKIP: existing files are skipped
-+ :SUPERSEDE, :RENAME, :RENAME-AND-DELETE, :NEW-VERSION, :ERROR: Same behavior as OPEN.
-+ :SKIP-IF-NEWER: existing files are skipped, if newer than the version in the ARCHIVE.
++ NIL, :SKIP, :KEEP : existing files are skipped
++ :SUPERSEDE, :RENAME-AND-DELETE, :ERROR : Same behavior as OPEN.
 
 
 The following options configure how metadata is extracted.
@@ -226,23 +225,35 @@ non-NIL if the entry should be extracted."
              (case if-directory-symbolic-link-exists
                ((nil :skip) (skip-entry c))
                (:follow (follow-symbolic-link c))
-               (:supersede (replace-symbolic-link c))))))
+               (:supersede (replace-symbolic-link c)))))
+
+         (destination-exists
+           (lambda (c)
+             (let ((entry-mtime (tar:mtime (extraction-entry-error-entry c)))
+                   (existing-mtime (destination-exists-mtime c)))
+               (if (local-time:timestamp< entry-mtime existing-mtime)
+                   (case if-newer-exists
+                     ((nil :skip :keep) (skip-entry c))
+                     (:supersede (invoke-restart 'supersede-file))
+                     (:rename-and-delete (invoke-restart 'rename-and-replace-file)))
+                   (case if-exists
+                     ((nil :skip :keep) (skip-entry c))
+                     (:supersede (invoke-restart 'supersede-file))
+                     (:rename-and-delete (invoke-restart 'rename-and-replace-file))))))))
       (tar:do-entries (entry archive)
-        (restart-case
-            (let ((pn (compute-extraction-pathname entry (tar:name entry) strip-components)))
-              (when (funcall filter entry pn)
-                (tar:with-ignored-unsupported-properties ()
-                  (extract-entry entry pn :if-exists if-exists
-                                          :if-newer-exists if-newer-exists
-                                          :mask mask
-                                          :numeric-uid numeric-uid
-                                          :no-same-owner no-same-owner
-                                          :touch touch))))
-          (skip-entry ())))
+        (let ((*current-entry* entry))
+          (restart-case
+              (let ((pn (compute-extraction-pathname entry (tar:name entry) strip-components)))
+                (when (funcall filter entry pn)
+                  (tar:with-ignored-unsupported-properties ()
+                    (extract-entry entry pn
+                                   :mask mask
+                                   :numeric-uid numeric-uid
+                                   :no-same-owner no-same-owner
+                                   :touch touch))))
+            (skip-entry ()))))
       (dolist (pair *deferred-directories*)
         (handle-deferred-directory (car pair) (cdr pair)
-                                   :if-exists if-exists
-                                   :if-newer-exists if-newer-exists
                                    :mask mask
                                    :numeric-uid numeric-uid
                                    :no-same-owner no-same-owner
@@ -261,12 +272,11 @@ non-NIL if the entry should be extracted."
 
 (defmethod extract-entry ((entry tar:file-entry) pn
                           &key touch no-same-owner numeric-uid mask
-                            if-exists if-newer-exists if-destination-symbolic-link)
+                            if-destination-symbolic-link)
   ;; First, get a handle on the directory.
   (with-open-stream (stream (openat *destination-dir-fd* pn
                                     (logior nix:s-irusr
-                                            nix:s-iwusr)
-                                    :if-exists if-exists))
+                                            nix:s-iwusr)))
     (uiop:copy-stream-to-stream (tar:make-entry-stream entry) stream
                                 :element-type '(unsigned-byte 8))
     (handler-case
@@ -306,12 +316,11 @@ non-NIL if the entry should be extracted."
 (defun handle-deferred-directory (entry pn
                                   &key
                                     touch no-same-owner numeric-uid mask
-                                    if-exists if-newer-exists if-destination-symbolic-link)
+                                    if-destination-symbolic-link)
   (with-open-stream (stream (openat *destination-dir-fd* pn
                                     (logior nix:s-irusr
                                             nix:s-iwusr
-                                            nix:s-ixusr)
-                                    :if-exists if-exists))
+                                            nix:s-ixusr)))
     (handler-case
         (progn
           ;; Set atime and mtime
@@ -346,15 +355,23 @@ non-NIL if the entry should be extracted."
                                  (tar:gid entry)))))
               (nix:fchown (fd stream) owner group)))))))
 
-(defmethod extract-entry ((entry tar:directory-entry) pn &key if-exists &allow-other-keys)
+(defmethod extract-entry ((entry tar:directory-entry) pn &key &allow-other-keys)
   ;; First, get a handle on the parent
   (with-open-stream (stream (openat *destination-dir-fd* pn
                                     (logior nix:s-irusr
                                             nix:s-iwusr
-                                            nix:s-ixusr)
-                                    :if-exists if-exists))
+                                            nix:s-ixusr)))
     ;; Enqueue this to later set its properties.
     (push (cons entry pn) *deferred-directories*)))
+
+(defmethod extract-entry ((entry tar:fifo-entry) pn &key mask &allow-other-keys)
+  (let ((dir-fd (open-directory-handle *destination-dir-fd* (uiop:pathname-directory-pathname pn))))
+    (unwind-protect
+         (nix:mkfifoat dir-fd (file-namestring pn) (tar::permissions-to-mode
+                                                    (set-difference (tar:mode entry)
+                                                                    mask)))
+      (unless (eql dir-fd *destination-dir-fd*)
+        (nix:close dir-fd)))))
 
 (defmethod extract-entry ((entry tar:symbolic-link-entry) pn &key &allow-other-keys)
   (let ((dir-fd (open-directory-handle *destination-dir-fd* (uiop:pathname-directory-pathname pn))))

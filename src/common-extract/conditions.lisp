@@ -2,12 +2,15 @@
 
 (in-package #:tar-common-extract)
 
+(defvar *current-entry*)
+
 (define-condition extraction-error (error)
   ())
 
 (define-condition extraction-entry-error (extraction-error)
   ((entry
     :initarg :entry
+    :initform *current-entry*
     :reader extraction-entry-error-entry)))
 
 (define-condition entry-name-contains-device-error (extraction-entry-error)

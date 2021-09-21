@@ -103,10 +103,12 @@
                         (error 'directory-is-symbolic-link-error
                                :target target)
                       (follow-symbolic-link ()
-                        (open-directory-handle start-handle target))
+                        (return-from open-directory-handle-1
+                          (open-directory-handle start-handle (uiop:ensure-directory-pathname target))))
                       (replace-symbolic-link ()
                         (nix:unlinkat start-handle (first directory-list) 0)
-                        (open-directory-handle-1 start-handle directory-list)))))))
+                        (return-from open-directory-handle-1
+                          (open-directory-handle-1 start-handle directory-list))))))))
            (let ((flags (logior nix:o-rdonly nix:o-nofollow)))
              (open-directory-handle-1 (nix:openat start-handle (first directory-list) flags 0)
                                       (rest directory-list)))))))
@@ -127,60 +129,96 @@
     :for name := (concatenate 'string "." (file-namestring pathname)
                               "." (princ-to-string random))
     :for stream := (handler-case
-                       (openat dir-handle pathname mode
-                               :if-exists nil)
+                       (openat dir-handle name mode)
                      (destination-is-symbolic-link-error () nil))
     :when stream
       :return (values stream name)))
 
-(defun openat (dir-handle pathname mode
-               &rest args
-               &key if-exists
-                 follow-file-symbolic-links)
-  (let ((parent-dir-handle (open-directory-handle dir-handle
-                                                  (uiop:pathname-directory-pathname pathname)))
-        (flags (logior nix:o-wronly
-                       nix:o-creat))
-        (name (file-namestring pathname)))
-    (unless follow-file-symbolic-links
-      (setf flags (logior flags nix:o-nofollow)))
-    (case if-exists
-      (:supersede
-       (setf flags (logior flags nix:o-trunc)))
-      (t
-       (setf flags (logior flags nix:o-excl))))
-
+(defun openat (dir-handle pathname mode)
+  (let ((dirfd (open-directory-handle dir-handle
+                                      (uiop:pathname-directory-pathname pathname)))
+        flags
+        (name (file-namestring pathname))
+        stat)
     (if (or (null name)
             (equal name ""))
-        (make-instance 'fd-stream :fd parent-dir-handle)
+        (make-instance 'fd-stream :fd dirfd)
         (unwind-protect
-             (handler-case
-                 (make-instance 'fd-output-stream :fd (nix:openat parent-dir-handle name flags mode))
-               (nix:eexist ()
-                 (restart-case
-                     (error 'destination-exists)
-                   (supersede-file ()
-                     (apply #'openat parent-dir-handle name mode :if-exists :supersede args))
-                   (rename-and-replace-file ()
-                     (multiple-value-bind (stream tmp-name) (openat-random parent-dir-handle name mode)
-                       (push (lambda ()
-                               (nix:renameat parent-dir-handle tmp-name parent-dir-handle name))
-                             (close-hooks stream))
-                       stream))))
-               (nix:eloop ()
-                 (let ((target (uiop:parse-unix-namestring (nix:readlinkat parent-dir-handle name)
-                                                           :dot-dot :back)))
+             (tagbody
+              :retry
+                (setf flags (logior nix:o-wronly
+                                    nix:o-creat
+                                    nix:o-nofollow))
+                (handler-case
+                    (setf stat (nix:fstatat dirfd name nix:at-symlink-nofollow))
+                  ;; If the file doesn't seem to exist, add O_EXCL to our flags and
+                  ;; try to open it. The O_EXCL ensures we get an error if the file
+                  ;; is created between the stat and open calls
+                  (nix:enoent ()
+                    (setf flags (logior flags nix:o-excl))
+                    (go :open)))
+                (cond
+                  ;; The file exists and is a symlink.
+                  ((nix:s-islnk (nix:stat-mode stat))
+                   (let (target)
+                     ;; Try reading where it points to, so we can ask the user what
+                     ;; to do.
+                     (handler-case
+                         (setf target (uiop:parse-unix-namestring
+                                       (nix:readlinkat dirfd name)
+                                       :dot-dot :back))
+                       ;; The link got deleted between the stat and readlink
+                       ;; calls. Just retry from scratch.
+                       (nix:einval () (go :retry)))
+                     (restart-case
+                         (error 'destination-is-symbolic-link-error
+                                :target target)
+                       ;; Follow the symlink! We resolve the symlink destination
+                       ;; ourselves. This is because our API tells the user where
+                       ;; the symlink points and POSIX has no way to say "follow the
+                       ;; symlink, but only if it points to X still" (well, Linux
+                       ;; sort of does, but not Darwin nor BSD (pass a file
+                       ;; descriptior to readlinkat, not a dirfd))
+                       (follow-symbolic-link ()
+                         (return-from openat
+                           (openat dirfd target mode)))
+                       ;; Replace the symbolic link! Create a temporary file, rename
+                       ;; it on top of the symlink, and then return a stream to the
+                       ;; new file. This ensures that the link is atomically
+                       ;; replaced.
+                       (replace-symbolic-link ()
+                         (multiple-value-bind (stream tmp-name)
+                             (openat-random dirfd name mode)
+                           (nix:renameat dirfd tmp-name dirfd name)
+                           (return-from openat stream))))))
+                  ;; File exists, but is not a symlink. Ask the user what to do.
+                  (t
                    (restart-case
-                       (error 'destination-is-symbolic-link-error
-                              :target target)
-                     (follow-symbolic-link ()
-                       (apply #'openat parent-dir-handle target mode :follow-file-symbolic-links t
-                              args))
-                     (replace-symbolic-link ()
-                       (multiple-value-bind (stream tmp-name) (openat-random parent-dir-handle name mode)
-                         (push (lambda ()
-                                 (nix:renameat parent-dir-handle tmp-name parent-dir-handle name))
-                               (close-hooks stream))
-                         stream))))))
-          (unless (eql dir-handle parent-dir-handle)
-            (nix:close parent-dir-handle))))))
+                       (error 'destination-exists
+                              :mtime (local-time:unix-to-timestamp (nix:stat-mtime stat)
+                                                                   :nsec (nix:stat-mtime-nsec stat))
+                              :pathname pathname)
+                     ;; User wants us to overwrite it. So add O_TRUNC to the flags
+                     ;; and get going.
+                     (supersede-file ()
+                       (setf flags (logior flags nix:o-trunc))
+                       (go :open))
+                     ;; User wants us to rename and replace the file. This keeps
+                     ;; processes that already have the file open happier. Take the
+                     ;; same approach as replacing a symlink, make a new file and
+                     ;; rename it.
+                     (rename-and-replace-file ()
+                       (multiple-value-bind (stream tmp-name) (openat-random dirfd name mode)
+                         (nix:renameat dirfd tmp-name dirfd name)
+                         (return-from openat stream))))))
+              :open
+                ;; Try opening the file!
+                (handler-case
+                    (return-from openat
+                      (make-instance 'fd-output-stream :fd (nix:openat dirfd name flags mode)))
+                  ;; Someone snuck in and created a file between the stat and open!
+                  (nix:eexist () (go :retry))
+                  ;; Someone snuck in and made a symlink on us!
+                  (nix:eloop () (go :retry))))
+          (unless (eql dir-handle dirfd)
+            (nix:close dirfd))))))
