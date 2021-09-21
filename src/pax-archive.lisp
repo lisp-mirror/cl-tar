@@ -68,28 +68,28 @@ USTAR-ARCHIVE header."))
 (defmethod archive-supports-negative-time-p ((archive pax-archive))
   t)
 
-(defmethod check-property-for-writing ((archive archive) (entry entry) (name (eql 'name)))
+(defmethod check-property-for-writing ((archive pax-archive) (entry entry) (name (eql 'name)))
   (check-required-property entry name 'string))
 
-(defmethod check-property-for-writing ((archive archive) (entry entry) (name (eql 'mode)))
+(defmethod check-property-for-writing ((archive pax-archive) (entry entry) (name (eql 'mode)))
   (check-required-property entry name 'mode-list))
 
-(defmethod check-property-for-writing ((archive archive) (entry entry) (name (eql 'uid)))
+(defmethod check-property-for-writing ((archive pax-archive) (entry entry) (name (eql 'uid)))
   (check-required-property entry name '(integer 0)))
 
-(defmethod check-property-for-writing ((archive archive) (entry entry) (name (eql 'gid)))
+(defmethod check-property-for-writing ((archive pax-archive) (entry entry) (name (eql 'gid)))
   (check-required-property entry name '(integer 0)))
 
-(defmethod check-property-for-writing ((archive archive) (entry entry) (name (eql 'size)))
+(defmethod check-property-for-writing ((archive pax-archive) (entry entry) (name (eql 'size)))
   (check-required-property entry name '(integer 0)))
 
-(defmethod check-property-for-writing ((archive archive) (entry link-entry) (name (eql 'linkname)))
+(defmethod check-property-for-writing ((archive pax-archive) (entry link-entry) (name (eql 'linkname)))
   (check-required-property entry name 'string))
 
-(defmethod check-property-for-writing ((archive archive) (entry entry) (name (eql 'uname)))
+(defmethod check-property-for-writing ((archive pax-archive) (entry entry) (name (eql 'uname)))
   t)
 
-(defmethod check-property-for-writing ((archive archive) (entry entry) (name (eql 'gname)))
+(defmethod check-property-for-writing ((archive pax-archive) (entry entry) (name (eql 'gname)))
   t)
 
 (defmethod %write-entry ((archive pax-archive) entry &rest overrides)

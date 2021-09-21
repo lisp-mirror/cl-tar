@@ -22,7 +22,7 @@
                (:file "ustar-archive" :depends-on ("package" "archive" "utils" "validation"))
                (:file "utils" :depends-on ("package"))
                (:file "v7-archive" :depends-on ("package" "archive" "validation"))
-               (:file "validation" :depends-on ("package" "entry"))))
+               (:file "validation" :depends-on ("package" "archive" "entry"))))
 
 (defsystem #:tar/test
   :pathname "test"
