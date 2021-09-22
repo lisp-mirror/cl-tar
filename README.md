@@ -2,6 +2,9 @@ This project provides a high level interface for interacting with tar
 archives. It consists of several systems that provide different levels of
 functionality.
 
+**NOTE**: In order to load `tar-extract`, you need a version of osicat with
+commits from [this PR](https://github.com/osicat/osicat/pull/54).
+
 ## tar
 
 The `tar` system is a thin layer on top of
