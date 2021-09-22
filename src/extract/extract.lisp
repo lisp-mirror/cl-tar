@@ -432,62 +432,26 @@ the CONTINUE restart active."
     (unless no-same-owner
       (set-owner entry numeric-uid :fd (fd stream)))))
 
+#+tar-extract-use-openat
 (defun handle-deferred-directory (entry pn
                                   &key
-                                    touch no-same-owner numeric-uid mask
-                                    if-destination-symbolic-link)
+                                    touch no-same-owner numeric-uid mask)
   (with-fd (fd (fd (openat *destination-dir-fd* pn
                            (logior nix:s-irusr
                                    nix:s-iwusr
                                    nix:s-ixusr))))
-    (handler-case
-        (progn
-          ;; Set atime and mtime
-          (unless touch
-            (let ((atime (and (slot-boundp entry 'tar:atime) (tar:atime entry)))
-                  (mtime (tar:mtime entry))
-                  atime-sec atime-nsec
-                  mtime-sec mtime-nsec)
-              (if (null atime)
-                  #+tar-extract-use-utimens
-                  (setf atime-sec 0
-                        atime-nsec nix:utime-omit)
-                  #-tar-extract-use-utimens
-                  (setf atime-sec (nix:stat-atime (nix:fstat (fd stream))))
-                  (setf atime-sec (local-time:timestamp-to-unix atime)
-                        atime-nsec (local-time:nsec-of atime)))
-              (if (null mtime)
-                  #+tar-extract-use-utimens
-                  (setf mtime-sec 0
-                        mtime-nsec nix:utime-omit)
-                  #-tar-extract-use-utimens
-                  (setf mtime-sec (nix:stat-mtime (nix:fstat (fd stream))))
-                  (setf mtime-sec (local-time:timestamp-to-unix mtime)
-                        mtime-nsec (local-time:nsec-of mtime)))
-              #+tar-extract-use-utimens
-              (nix:futimens fd atime-sec atime-nsec mtime-sec mtime-nsec)
-              #-tar-extract-use-utimens
-              (nix:futime (fd stream) atime-sec mtime-sec)))
-          ;; Set permissions
-          #-windows
-          (nix:fchmod fd (tar::permissions-to-mode (set-difference (tar:mode entry)
-                                                                   mask)))
-          #+windows
-          (nix:chmod (merge-pathnames pn) (tar::permissions-to-mode
-                                           (intersection (list :user-read :user-write)
-                                                         (set-difference (tar:mode entry) mask))))
-          ;; Set owner
-          #-windows
-          (unless no-same-owner
-            (let ((owner (if numeric-uid
-                             (tar:uid entry)
-                             (or (nth-value 2 (safe-getpwnam (tar:uname entry)))
-                                 (tar:uid entry))))
-                  (group (if numeric-uid
-                             (tar:gid entry)
-                             (or (nth-value 2 (safe-getgrnam (tar:gname entry)))
-                                 (tar:gid entry)))))
-              (nix:fchown fd owner group)))))))
+    (unless touch
+      (set-utimes entry :fd fd))
+    (set-permissions entry mask :fd fd)
+    (unless no-same-owner
+      (set-owner entry numeric-uid :fd fd))))
+
+#-tar-extract-use-openat
+(defun handle-deferred-directory (entry pn
+                                  &key
+                                    touch no-same-owner numeric-uid mask)
+
+  (set-permissions entry mask :pn pn))
 
 (defmethod extract-entry ((entry tar:directory-entry) pn &key &allow-other-keys)
   #+tar-extract-use-openat

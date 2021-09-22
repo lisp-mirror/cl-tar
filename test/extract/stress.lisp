@@ -173,6 +173,7 @@
 "
                (uiop:read-file-string "a.txt")))))
 
+#-windows
 (para:define-test if-directory-symbolic-link-exists
   (uiop:with-temporary-file (:stream s :pathname pn :type "tar"
                              :element-type '(unsigned-byte 8))
@@ -212,11 +213,13 @@
       (nix:symlink "real" (merge-pathnames "dir"))
       (tar:with-open-archive (a pn)
         (tar-extract:extract-archive a :if-directory-symbolic-link-exists :supersede))
-      (para:is eql :directory (osicat:file-kind (merge-pathnames "dir")))
+      (para:is eql :directory (osicat:file-kind (merge-pathnames "dir")
+                                                :follow-symlinks (uiop:os-windows-p)))
       (para:is equal "Hello, world!
 "
                (uiop:read-file-string "dir/a.txt")))))
 
+#-windows
 (para:define-test if-symbolic-link-exists
   (uiop:with-temporary-file (:stream s :pathname pn :type "tar"
                              :element-type '(unsigned-byte 8))
@@ -297,6 +300,7 @@
                                         :linkname "a.txt"
                                         :mtime (local-time:now))))
     :close-stream
+    #-windows
     (with-temp-dir ()
       (tar:with-open-archive (a pn)
         (tar-extract:extract-archive a))
@@ -311,7 +315,8 @@
     (with-temp-dir ()
       (tar:with-open-archive (a pn)
         (tar-extract:extract-archive a :symbolic-links :dereference))
-      (para:is eql :regular-file (osicat:file-kind (merge-pathnames "dir/a-symlink.txt")))
+      (para:is eql :regular-file (osicat:file-kind (merge-pathnames "dir/a-symlink.txt")
+                                                   :follow-symlinks (uiop:os-windows-p)))
       (para:is equal "Hello, world!
 "
                (uiop:read-file-string "dir/a-symlink.txt")))))
@@ -345,6 +350,7 @@
                                         :linkname "dir/a.txt"
                                         :mtime (local-time:now))))
     :close-stream
+    #-windows
     (with-temp-dir ()
       (tar:with-open-archive (a pn)
         (tar-extract:extract-archive a))
@@ -359,7 +365,9 @@
     (with-temp-dir ()
       (tar:with-open-archive (a pn)
         (tar-extract:extract-archive a :hard-links :dereference))
-      (para:is eql :regular-file (osicat:file-kind (merge-pathnames "dir/a-hardlink.txt")))
+      (para:is eql :regular-file (osicat:file-kind (merge-pathnames "dir/a-hardlink.txt")
+                                                   :follow-symlinks (uiop:os-windows-p)))
+      #-windows
       (para:is = 1 (nix:stat-nlink (nix:stat (merge-pathnames "dir/a-hardlink.txt"))))
       (para:is equal "Hello, world!
 "
@@ -434,6 +442,12 @@
                                                 :other-read)
                                         :mtime (local-time:now))))
     :close-stream
+    (with-temp-dir ()
+      (para:fail
+          (tar:with-open-archive (a pn)
+            (tar-extract:extract-archive a :fifos :error))
+          'tar-extract:unsupported-fifo-entry-error))
+    #-windows
     (with-temp-dir ()
       (tar:with-open-archive (a pn)
         (tar-extract:extract-archive a))

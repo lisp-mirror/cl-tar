@@ -4,17 +4,24 @@
   (with-temp-dir ()
     (tar:with-open-archive (a (asdf:system-relative-pathname
                                :tar "test/v7.tar"))
-      (tar-extract:extract-archive a)
+      (tar-extract:extract-archive a :symbolic-links #+windows :dereference #-windows t
+                                     :hard-links #+windows :dereference #-windows t)
       (para:is equal
                "Hello, world!
 "
                (uiop:read-file-string (merge-pathnames "a.txt")))
+      #-windows
       (para:is eql
                :symbolic-link
                (osicat:file-kind (merge-pathnames "a-symlink.txt")))
+      #-windows
       (para:is equal
                "a.txt"
                (nix:readlink (merge-pathnames "a-symlink.txt")))
+      (para:is equal
+               "Hello, world!
+"
+               (uiop:read-file-string (merge-pathnames "a-symlink.txt")))
       (para:is equal
                "Hello, world!
 "
@@ -62,17 +69,24 @@
     :close-stream
     (with-temp-dir ()
       (tar:with-open-archive (a pn)
-        (tar-extract:extract-archive a)
+        (tar-extract:extract-archive a :symbolic-links #+windows :dereference #-windows t
+                                       :hard-links #+windows :dereference #-windows t)
         (para:is equal
                  "Hello, world!
 "
                  (uiop:read-file-string (merge-pathnames "a.txt")))
+        #-windows
         (para:is eql
                  :symbolic-link
                  (osicat:file-kind (merge-pathnames "a-symlink.txt")))
+        #-windows
         (para:is equal
                  "a.txt"
                  (nix:readlink (merge-pathnames "a-symlink.txt")))
+        (para:is equal
+                 "Hello, world!
+"
+                 (uiop:read-file-string (merge-pathnames "a-symlink.txt")))
         (para:is equal
                  "Hello, world!
 "
@@ -130,25 +144,34 @@
     :close-stream
     (with-temp-dir ()
       (tar:with-open-archive (a pn)
-        (tar-extract:extract-archive a)
+        (tar-extract:extract-archive a :symbolic-links #+windows :dereference #-windows t
+                                       :hard-links #+windows :dereference #-windows t)
         (para:is equal
                  "Hello, world!
 "
                  (uiop:read-file-string (merge-pathnames "dir/a.txt")))
+        #-windows
         (para:is eql
                  :symbolic-link
                  (osicat:file-kind (merge-pathnames "dir/a-symlink.txt")))
+        #-windows
         (para:is equal
                  "a.txt"
                  (nix:readlink (merge-pathnames "dir/a-symlink.txt")))
         (para:is equal
                  "Hello, world!
 "
+                 (uiop:read-file-string (merge-pathnames "dir/a-symlink.txt")))
+        (para:is equal
+                 "Hello, world!
+"
                  (uiop:read-file-string (merge-pathnames "dir/a-hardlink.txt")))
 
-        (para:is = 2000 (nix:stat-mtime (nix:stat (merge-pathnames "dir/a.txt"))))
-        (para:is = 15 (nix:stat-mtime-nsec (nix:stat (merge-pathnames "dir/a.txt"))))
-        (para:is = 2000 (nix:stat-mtime (nix:stat (merge-pathnames "dir/a-hardlink.txt"))))
-        (para:is = 15 (nix:stat-mtime-nsec (nix:stat (merge-pathnames "dir/a-hardlink.txt"))))
-        (para:is = 2000 (nix:stat-mtime (nix:stat (merge-pathnames "dir/"))))
-        (para:is = 10 (nix:stat-mtime-nsec (nix:stat (merge-pathnames "dir/"))))))))
+        #-windows
+        (progn
+          (para:is = 2000 (nix:stat-mtime (nix:stat (merge-pathnames "dir/a.txt"))))
+          (para:is = 15 (nix:stat-mtime-nsec (nix:stat (merge-pathnames "dir/a.txt"))))
+          (para:is = 2000 (nix:stat-mtime (nix:stat (merge-pathnames "dir/a-hardlink.txt"))))
+          (para:is = 15 (nix:stat-mtime-nsec (nix:stat (merge-pathnames "dir/a-hardlink.txt"))))
+          (para:is = 2000 (nix:stat-mtime (nix:stat (merge-pathnames "dir/"))))
+          (para:is = 10 (nix:stat-mtime-nsec (nix:stat (merge-pathnames "dir/")))))))))
