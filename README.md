@@ -5,6 +5,28 @@ functionality.
 **NOTE**: In order to load `tar-extract`, you need a version of osicat with
 commits from [this PR](https://github.com/osicat/osicat/pull/54).
 
+## Quickstart
+
+If you want to extract a tar archive, without caring about preserving all the
+metadata, run the following:
+
+```common-lisp
+(asdf:load-system :tar-simple-extract)
+
+(tar:with-open-archive (a "/path/to/file.tar")
+  (tar-simple-extract:simple-extract-archive a :directory "/path/to/extraction/point/"))
+```
+
+If you want to extract a tar archive, attempting to preserve symbolic links and
+as much metadata as possible, evaluate the following:
+
+```common-lisp
+(asdf:load-system :tar-extract)
+
+(tar:with-open-archive (a "/path/to/file.tar")
+  (tar-extract:extract-archive a :directory "/path/to/extraction/point/"))
+```
+
 ## tar
 
 The `tar` system is a thin layer on top of
