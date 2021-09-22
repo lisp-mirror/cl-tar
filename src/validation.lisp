@@ -32,7 +32,7 @@
         (truncate-value ()
           nil)))))
 
-(defun check-integer-max-value (entry name max-value &key truncate-p)
+(defun check-integer-max-value (entry name max-value)
   (let ((value (slot-value entry name)))
     (unless (<= value max-value)
       (restart-case
