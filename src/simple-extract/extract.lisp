@@ -134,6 +134,7 @@ the CONTINUE restart active."
           "DIRECTORY must be a directory pathname")
   (let ((*default-pathname-defaults* (uiop:ensure-directory-pathname directory))
         (*deferred-links* nil))
+    (ensure-directories-exist *default-pathname-defaults*)
     (handler-bind
         ((entry-name-contains-device-error
            (lambda (c)
