@@ -24,6 +24,8 @@
    #:unsupported-symbolic-link-entry-error
    #:unsupported-hard-link-entry-error
 
+   #:broken-or-circular-links-error
+
    #:dereference-link
 
    #:skip-entry

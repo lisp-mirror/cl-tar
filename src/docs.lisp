@@ -24,7 +24,33 @@
      :export nil
      :package-symbol (find-package :tar-simple-extract))
   "This section describes the support for simple extraction to the filesystem."
-  (simple-extract-archive 40ants-doc/locatives:function))
+  (simple-extract-archive 40ants-doc/locatives:function)
+  (@tar-simple-extract-conditions 40ants-doc/locatives:section))
+
+(40ants-doc:defsection @tar-simple-extract-conditions
+    (:title "Simple Extraction Conditions"
+     :export nil
+     :package-symbol (find-package :tar-simple-extract))
+  "This section describes the conditions that can occur during
+SIMPLE-EXTRACT-ARCHIVE."
+  (extraction-error 40ants-doc/locatives:class)
+  (extraction-entry-error 40ants-doc/locatives:class)
+  (extraction-entry-error-entry (40ants-doc/locatives:reader extraction-entry-error))
+  (entry-name-contains-device-error 40ants-doc/locatives:class)
+  (entry-name-contains-..-error 40ants-doc/locatives:class)
+  (entry-name-is-absolute-error 40ants-doc/locatives:class)
+  (unsupported-entry-error 40ants-doc/locatives:class)
+  (unsupported-character-device-entry-error 40ants-doc/locatives:class)
+  (unsupported-block-device-entry-error 40ants-doc/locatives:class)
+  (unsupported-fifo-entry-error 40ants-doc/locatives:class)
+  (unsupported-symbolic-link-entry-error 40ants-doc/locatives:class)
+  (unsupported-hard-link-entry-error 40ants-doc/locatives:class)
+  (broken-or-circular-links-error 40ants-doc/locatives:class)
+
+  (dereference-link 40ants-doc/locatives:function)
+  (skip-entry 40ants-doc/locatives:function)
+  (relativize-entry-name 40ants-doc/locatives:function)
+  (treat-..-as-back 40ants-doc/locatives:function))
 
 (40ants-doc:defsection @tar-extract
     (:title "Extraction"

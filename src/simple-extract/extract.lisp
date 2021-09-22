@@ -25,7 +25,8 @@
                                  (filter (constantly t)))
   "Extract all entries in ARCHIVE to DIRECTORY.
 
-DIRECTORY defaults to (UIOP:ENSURE-DIRECTORY-PATHNAME *DEFAULT-PATHNAME-DEFAULTS*).
+DIRECTORY defaults to *DEFAULT-PATHNAME-DEFAULTS* and must be a directory
+pathname.
 
 The following options configure how the final pathname of each entry is
 computed:
@@ -87,7 +88,8 @@ defaults to :DEREFERENCE. The possible values are:
 + :DEREFERENCE : any symlink entries are instead written as normal files with
   the contents of the file they point to.
 + :SKIP : Skip the symlink.
-+ :ERROR : Signal a UNSUPPORTED-SYMBOLIC-LINK-ENTRY-ERROR.
++ :ERROR : Signal a UNSUPPORTED-SYMBOLIC-LINK-ENTRY-ERROR with the restarts
+  DEREFERENCE-LINK and SKIP-ENTRY active.
 
 HARD-LINKS controls how hard links are extracted from ARCHIVE. It defaults to
 :DEREFERENCE. The possible values are:
@@ -95,31 +97,41 @@ HARD-LINKS controls how hard links are extracted from ARCHIVE. It defaults to
 + :DEREFERENCE : any hard link entries are instead written as normal files with
   the contents of the file they point to.
 + :SKIP : Skip the hard link.
-+ :ERROR : Signal a UNSUPPORTED-HARD-LINK-ENTRY-ERROR.
++ :ERROR : Signal a UNSUPPORTED-HARD-LINK-ENTRY-ERROR with the restarts
+  DEREFERENCE-LINK and SKIP-ENTRY active.
 
 CHARACTER-DEVICES controls how character devices are extracted from ARCHIVE. It
 defaults to :SKIP. The possible values are:
 
 + :SKIP : Skip the entry.
-+ :ERROR : Signal a UNSUPPORTED-CHARACTER-DEVICE-ENTRY-ERROR.
++ :ERROR : Signal a UNSUPPORTED-CHARACTER-DEVICE-ENTRY-ERROR with the restart
+  SKIP-ENTRY active.
 
 BLOCK-DEVICES controls how block devices are extracted from ARCHIVE. It
 defaults to :SKIP. The possible values are:
 
 + :SKIP : Skip the entry.
-+ :ERROR : Signal a UNSUPPORTED-BLOCK-DEVICE-ENTRY-ERROR.
++ :ERROR : Signal a UNSUPPORTED-BLOCK-DEVICE-ENTRY-ERROR with the restart
+  SKIP-ENTRY active.
 
 FIFOS controls how FIFOs are extracted from ARCHIVE. It defaults to :SKIP. The
 possible values are:
 
 + :SKIP : Skip the entry.
-+ :ERROR : Signal a UNSUPPORTED-FIFO-ENTRY-ERROR.
++ :ERROR : Signal a UNSUPPORTED-FIFO-ENTRY-ERROR with the restart SKIP-ENTRY
+  active.
 
 The following option controls what entries are extracted.
 
 FILTER defaults to (CONSTANTLY T). Must be a function designator that takes two
 arguments (the entry and the pathname were it will be extracted) and returns
-non-NIL if the entry should be extracted."
+non-NIL if the entry should be extracted.
+
+If symbolic and hard links are dereferenced, there may be broken or circular
+links. If that is detected, a BROKEN-OR-CIRCULAR-LINKS-ERROR is signalled with
+the CONTINUE restart active."
+  (assert (uiop:directory-pathname-p directory) (directory)
+          "DIRECTORY must be a directory pathname")
   (let ((*default-pathname-defaults* (uiop:ensure-directory-pathname directory))
         (*deferred-links* nil))
     (handler-bind
@@ -165,7 +177,8 @@ non-NIL if the entry should be extracted."
                (:skip (skip-entry c))))))
       (tar:do-entries (entry archive)
         (restart-case
-            (let ((pn (compute-extraction-pathname entry (tar:name entry) strip-components)))
+            (let* ((*current-entry* entry)
+                   (pn (compute-extraction-pathname entry (tar:name entry) strip-components)))
               (when (funcall filter entry pn)
                 (simple-extract-entry entry pn :if-exists if-exists
                                                :if-newer-exists if-newer-exists)))
@@ -212,7 +225,9 @@ non-NIL if the entry should be extracted."
     :for links := (process-deferred-links-1 prev-links if-exists if-newer-exists)
     :while links
     :when (= (length links) (length prev-links))
-      :do (error "circular-and-or-broken-links")))
+      :do (restart-case
+              (error 'broken-or-circular-links-error)
+            (continue () (return)))))
 
 (defgeneric simple-extract-entry (entry pn &key))
 
