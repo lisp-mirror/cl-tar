@@ -303,6 +303,17 @@
       (para:is equal "a.txt" (nix:readlink (merge-pathnames "dir/a-symlink.txt")))
       (para:is equal "Hello, world!
 "
+               (uiop:read-file-string "dir/a-symlink.txt")))
+    (with-temp-dir ()
+      (tar:with-open-archive (a pn)
+        (tar-extract:extract-archive a :symbolic-links :skip))
+      (para:false (probe-file (merge-pathnames "dir/a-symlink.txt"))))
+    (with-temp-dir ()
+      (tar:with-open-archive (a pn)
+        (tar-extract:extract-archive a :symbolic-links :dereference))
+      (para:is eql :regular-file (osicat:file-kind (merge-pathnames "dir/a-symlink.txt")))
+      (para:is equal "Hello, world!
+"
                (uiop:read-file-string "dir/a-symlink.txt")))))
 
 (para:define-test hard-links
@@ -336,65 +347,77 @@
     :close-stream
     (with-temp-dir ()
       (tar:with-open-archive (a pn)
-        (tar-extract:extract-archive a :hard-links :dereference))
+        (tar-extract:extract-archive a))
       (para:is equal "Hello, world!
 "
                (uiop:read-file-string "dir/a-hardlink.txt"))
-      (para:is = 2 (nix:stat-nlink (nix:stat (merge-pathnames "dir/a-hardlink.txt")))))))
+      (para:is = 2 (nix:stat-nlink (nix:stat (merge-pathnames "dir/a-hardlink.txt")))))
+    (with-temp-dir ()
+      (tar:with-open-archive (a pn)
+        (tar-extract:extract-archive a :hard-links :skip))
+      (para:false (probe-file (merge-pathnames "dir/a-hardlink.txt"))))
+    (with-temp-dir ()
+      (tar:with-open-archive (a pn)
+        (tar-extract:extract-archive a :hard-links :dereference))
+      (para:is eql :regular-file (osicat:file-kind (merge-pathnames "dir/a-hardlink.txt")))
+      (para:is = 1 (nix:stat-nlink (nix:stat (merge-pathnames "dir/a-hardlink.txt"))))
+      (para:is equal "Hello, world!
+"
+               (uiop:read-file-string "dir/a-hardlink.txt")))))
 
-;; (para:define-test character-devices
-;;   (uiop:with-temporary-file (:stream s :pathname pn :type "tar"
-;;                              :element-type '(unsigned-byte 8))
-;;     (tar:with-open-archive (a s :direction :output :type 'tar:pax-archive)
-;;       (tar:write-entry a (make-instance 'tar:character-device-entry
-;;                                         :name "tty0"
-;;                                         :uname "root"
-;;                                         :gname "root"
-;;                                         :uid 0
-;;                                         :gid 0
-;;                                         :mode '(:user-read :user-write
-;;                                                 :group-read
-;;                                                 :other-read)
-;;                                         :mtime (local-time:now)
-;;                                         :devmajor 4
-;;                                         :devminor 0)))
-;;     :close-stream
-;;     (with-temp-dir ()
-;;       (para:fail
-;;           (tar:with-open-archive (a pn)
-;;             (tar-simple-extract:simple-extract-archive a :character-devices :error))
-;;           'tar-simple-extract:unsupported-character-device-entry-error))
-;;     (with-temp-dir ()
-;;       (tar:with-open-archive (a pn)
-;;         (tar-simple-extract:simple-extract-archive a :character-devices :skip))
-;;       (para:false (probe-file "tty0")))))
+(para:define-test character-devices
+  (uiop:with-temporary-file (:stream s :pathname pn :type "tar"
+                             :element-type '(unsigned-byte 8))
+    (tar:with-open-archive (a s :direction :output :type 'tar:pax-archive)
+      (tar:write-entry a (make-instance 'tar:character-device-entry
+                                        :name "tty0"
+                                        :uname "root"
+                                        :gname "root"
+                                        :uid 0
+                                        :gid 0
+                                        :mode '(:user-read :user-write
+                                                :group-read
+                                                :other-read)
+                                        :mtime (local-time:now)
+                                        :devmajor 4
+                                        :devminor 0)))
+    :close-stream
+    (with-temp-dir ()
+      (para:fail
+          (tar:with-open-archive (a pn)
+            (tar-extract:extract-archive a :character-devices :error))
+          'tar-extract:unsupported-character-device-entry-error))
+    (with-temp-dir ()
+      (tar:with-open-archive (a pn)
+        (tar-extract:extract-archive a :character-devices :skip))
+      (para:false (probe-file "tty0")))))
 
-;; (para:define-test block-devices
-;;   (uiop:with-temporary-file (:stream s :pathname pn :type "tar"
-;;                              :element-type '(unsigned-byte 8))
-;;     (tar:with-open-archive (a s :direction :output :type 'tar:pax-archive)
-;;       (tar:write-entry a (make-instance 'tar:block-device-entry
-;;                                         :name "sda1"
-;;                                         :uname "root"
-;;                                         :gname "root"
-;;                                         :uid 0
-;;                                         :gid 0
-;;                                         :mode '(:user-read :user-write
-;;                                                 :group-read
-;;                                                 :other-read)
-;;                                         :mtime (local-time:now)
-;;                                         :devmajor 8
-;;                                         :devminor 1)))
-;;     :close-stream
-;;     (with-temp-dir ()
-;;       (para:fail
-;;           (tar:with-open-archive (a pn)
-;;             (tar-simple-extract:simple-extract-archive a :block-devices :error))
-;;           'tar-simple-extract:unsupported-block-device-entry-error))
-;;     (with-temp-dir ()
-;;       (tar:with-open-archive (a pn)
-;;         (tar-simple-extract:simple-extract-archive a :block-devices :skip))
-;;       (para:false (probe-file "sda1")))))
+(para:define-test block-devices
+  (uiop:with-temporary-file (:stream s :pathname pn :type "tar"
+                             :element-type '(unsigned-byte 8))
+    (tar:with-open-archive (a s :direction :output :type 'tar:pax-archive)
+      (tar:write-entry a (make-instance 'tar:block-device-entry
+                                        :name "sda1"
+                                        :uname "root"
+                                        :gname "root"
+                                        :uid 0
+                                        :gid 0
+                                        :mode '(:user-read :user-write
+                                                :group-read
+                                                :other-read)
+                                        :mtime (local-time:now)
+                                        :devmajor 8
+                                        :devminor 1)))
+    :close-stream
+    (with-temp-dir ()
+      (para:fail
+          (tar:with-open-archive (a pn)
+            (tar-extract:extract-archive a :block-devices :error))
+          'tar-extract:unsupported-block-device-entry-error))
+    (with-temp-dir ()
+      (tar:with-open-archive (a pn)
+        (tar-extract:extract-archive a :block-devices :skip))
+      (para:false (probe-file "sda1")))))
 
 (para:define-test fifos
   (uiop:with-temporary-file (:stream s :pathname pn :type "tar"

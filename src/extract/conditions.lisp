@@ -2,10 +2,10 @@
 
 (in-package #:tar-extract)
 
-(define-condition destination-exists (extraction-entry-error file-error)
+(define-condition destination-exists-error (extraction-entry-error file-error)
   ((mtime
     :initarg :mtime
-    :reader destination-exists-mtime)))
+    :reader destination-exists-error-mtime)))
 
 (define-condition extraction-through-symbolic-link-error (extraction-entry-error)
   ((target
@@ -27,3 +27,18 @@
 
 (defun replace-symbolic-link (&optional c)
   (invoke-restart (find-restart 'replace-symbolic-link c)))
+
+(defun supersede-file (&optional c)
+  (invoke-restart (find-restart 'supersede-file c)))
+
+(defun rename-and-replace-file (&optional c)
+  (invoke-restart (find-restart 'rename-and-replace-file c)))
+
+(defun extract-link (&optional c)
+  (invoke-restart (find-restart 'extract-link c)))
+
+(defun extract-device (&optional c)
+  (invoke-restart (find-restart 'extract-device c)))
+
+(defun extract-fifo (&optional c)
+  (invoke-restart (find-restart 'extract-fifo c)))

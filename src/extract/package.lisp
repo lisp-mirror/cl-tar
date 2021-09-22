@@ -16,10 +16,19 @@
 
    #:entry-name-is-absolute-error
 
+   #:unsupported-entry-error
+   #:unsupported-character-device-entry-error
+   #:unsupported-block-device-entry-error
+   #:unsupported-fifo-entry-error
+   #:unsupported-symbolic-link-entry-error
+   #:unsupported-hard-link-entry-error
+
+   #:broken-or-circular-links-error
+
+   #:dereference-link
    #:skip-entry
    #:relativize-entry-name
    #:treat-..-as-back)
-
   ;; conditions
   (:export
    #:extraction-through-symbolic-link-error)

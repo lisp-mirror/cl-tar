@@ -61,7 +61,7 @@
     :for stream := (handler-case
                        (openat dir-handle name mode)
                      (extraction-through-symbolic-link-error () nil)
-                     (destination-exists () nil))
+                     (destination-exists-error () nil))
     :when stream
       :return (values stream name)))
 
@@ -72,7 +72,7 @@
                               "-" (princ-to-string random))
     :for stream := (handler-case
                        (my-open name mode)
-                     (destination-exists () nil))
+                     (destination-exists-error () nil))
     :when stream
       :return (values stream name)))
 
@@ -216,7 +216,7 @@ Returns an FD-STREAM or OUTPUT-FD-STREAM."
             ;; File exists, but is not a symlink. Ask the user what to do.
             (t
              (restart-case
-                 (error 'destination-exists
+                 (error 'destination-exists-error
                         :mtime (local-time:unix-to-timestamp (nix:stat-mtime stat)
                                                              :nsec (nix:stat-mtime-nsec stat))
                         :pathname pathname)
@@ -261,7 +261,7 @@ Returns an FD-STREAM or OUTPUT-FD-STREAM."
            (go :open)))
        ;; File exists, ask the user what to do.
        (restart-case
-           (error 'destination-exists
+           (error 'destination-exists-error
                   :mtime (local-time:unix-to-timestamp (nix:stat-mtime stat))
                   :pathname pn)
          ;; User wants us to overwrite it. So add O_TRUNC to the flags
