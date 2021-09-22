@@ -15,9 +15,10 @@
                       (error "Tests failed")))
   :components ((:file "package")
                (:file "conditions" :depends-on ("package"))
+               (:file "features" :depends-on ("package"))
                (:file "utils" :depends-on ("package"))
-               (:file "fd-stream" :depends-on ("package" "utils"))
-               (:file "extract" :depends-on ("package" "conditions" "utils"))))
+               (:file "fd-stream" :depends-on ("package" "utils" "features"))
+               (:file "extract" :depends-on ("package" "conditions" "utils" "features"))))
 
 (defsystem #:tar-extract/test
   :pathname "test/extract"

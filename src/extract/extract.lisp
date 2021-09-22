@@ -6,6 +6,7 @@
 
 (defvar *deferred-directories*)
 
+#+tar-extract-use-openat
 (defvar *destination-dir-fd*)
 
 (defun extract-archive (archive
@@ -25,7 +26,7 @@
                           keep-directory-metadata
                           touch
                           (no-same-owner (or #+:windows t
-                                             (not (zerop (nix:getuid)))))
+                                             #-windows (not (zerop (nix:getuid)))))
                           numeric-uid
                           mask
 
@@ -167,10 +168,12 @@ non-NIL if the entry should be extracted."
   (let ((*default-pathname-defaults* (uiop:ensure-directory-pathname directory))
         (*deferred-links* nil)
         (*deferred-directories* nil)
-        *destination-dir-fd*)
+        #+tar-extract-use-openat *destination-dir-fd*)
     (ensure-directories-exist *default-pathname-defaults*)
-    (with-fd (*destination-dir-fd* (nix:open *default-pathname-defaults*
-                                             nix:o-rdonly))
+    (#+tar-extract-use-openat with-fd
+     #+tar-extract-use-openat (*destination-dir-fd* (nix:open *default-pathname-defaults*
+                                                              nix:o-rdonly))
+     #-tar-extract-use-openat progn
       (handler-bind
           ((entry-name-contains-device-error
              (lambda (c)
@@ -260,10 +263,11 @@ non-NIL if the entry should be extracted."
 
 (defgeneric extract-entry (entry pn &key))
 
+#-windows
 (defun safe-getpwnam (uname)
   (unless (null uname)
     (nix:getpwnam uname)))
-
+#-windows
 (defun safe-getgrnam (gname)
   (unless (null gname)
     (nix:getgrnam gname)))
@@ -272,9 +276,10 @@ non-NIL if the entry should be extracted."
                           &key touch no-same-owner numeric-uid mask
                             if-destination-symbolic-link)
   ;; First, get a handle on the directory.
-  (with-open-stream (stream (openat *destination-dir-fd* pn
-                                    (logior nix:s-irusr
-                                            nix:s-iwusr)))
+  (with-open-stream (stream #+tar-extract-use-openat (openat *destination-dir-fd* pn
+                                                             (logior nix:s-irusr
+                                                                     nix:s-iwusr))
+                            #-tar-extract-use-openat (my-open pn (logior nix:s-irusr nix:s-iwusr)))
     (uiop:copy-stream-to-stream (tar:make-entry-stream entry) stream
                                 :element-type '(unsigned-byte 8))
     (handler-case
@@ -286,20 +291,35 @@ non-NIL if the entry should be extracted."
                   atime-sec atime-nsec
                   mtime-sec mtime-nsec)
               (if (null atime)
+                  #+tar-extract-use-utimens
                   (setf atime-sec 0
                         atime-nsec nix:utime-omit)
+                  #-tar-extract-use-utimens
+                  (setf atime-sec (nix:stat-atime (nix:fstat (fd stream))))
                   (setf atime-sec (local-time:timestamp-to-unix atime)
                         atime-nsec (local-time:nsec-of atime)))
               (if (null mtime)
+                  #+tar-extract-use-utimens
                   (setf mtime-sec 0
                         mtime-nsec nix:utime-omit)
+                  #-tar-extract-use-utimens
+                  (setf mtime-sec (nix:stat-mtime (nix:fstat (fd stream))))
                   (setf mtime-sec (local-time:timestamp-to-unix mtime)
                         mtime-nsec (local-time:nsec-of mtime)))
-              (nix:futimens (fd stream) atime-sec atime-nsec mtime-sec mtime-nsec)))
+              #+tar-extract-use-utimens
+              (nix:futimens (fd stream) atime-sec atime-nsec mtime-sec mtime-nsec)
+              #-tar-extract-use-utimens
+              (nix:futime (fd stream) atime-sec mtime-sec)))
           ;; Set permissions
+          #-windows
           (nix:fchmod (fd stream) (tar::permissions-to-mode (set-difference (tar:mode entry)
                                                                             mask)))
+          #+windows
+          (nix:chmod (merge-pathnames pn) (tar::permissions-to-mode
+                                           (intersection (list :user-read :user-write)
+                                                         (set-difference (tar:mode entry) mask))))
           ;; Set owner
+          #-windows
           (unless no-same-owner
             (let ((owner (if numeric-uid
                              (tar:uid entry)
@@ -328,20 +348,35 @@ non-NIL if the entry should be extracted."
                   atime-sec atime-nsec
                   mtime-sec mtime-nsec)
               (if (null atime)
+                  #+tar-extract-use-utimens
                   (setf atime-sec 0
                         atime-nsec nix:utime-omit)
+                  #-tar-extract-use-utimens
+                  (setf atime-sec (nix:stat-atime (nix:fstat (fd stream))))
                   (setf atime-sec (local-time:timestamp-to-unix atime)
                         atime-nsec (local-time:nsec-of atime)))
               (if (null mtime)
+                  #+tar-extract-use-utimens
                   (setf mtime-sec 0
                         mtime-nsec nix:utime-omit)
+                  #-tar-extract-use-utimens
+                  (setf mtime-sec (nix:stat-mtime (nix:fstat (fd stream))))
                   (setf mtime-sec (local-time:timestamp-to-unix mtime)
                         mtime-nsec (local-time:nsec-of mtime)))
-              (nix:futimens fd atime-sec atime-nsec mtime-sec mtime-nsec)))
+              #+tar-extract-use-utimens
+              (nix:futimens fd atime-sec atime-nsec mtime-sec mtime-nsec)
+              #-tar-extract-use-utimens
+              (nix:futime (fd stream) atime-sec mtime-sec)))
           ;; Set permissions
+          #-windows
           (nix:fchmod fd (tar::permissions-to-mode (set-difference (tar:mode entry)
-                                                                            mask)))
+                                                                   mask)))
+          #+windows
+          (nix:chmod (merge-pathnames pn) (tar::permissions-to-mode
+                                           (intersection (list :user-read :user-write)
+                                                         (set-difference (tar:mode entry) mask))))
           ;; Set owner
+          #-windows
           (unless no-same-owner
             (let ((owner (if numeric-uid
                              (tar:uid entry)
@@ -354,32 +389,58 @@ non-NIL if the entry should be extracted."
               (nix:fchown fd owner group)))))))
 
 (defmethod extract-entry ((entry tar:directory-entry) pn &key &allow-other-keys)
-  ;; First, get a handle on the parent
+  #+tar-extract-use-openat
   (with-fd (dirfd (fd (openat *destination-dir-fd* pn
                               (logior nix:s-irusr
                                       nix:s-iwusr
                                       nix:s-ixusr))))
     (declare (ignore dirfd))
     ;; Enqueue this to later set its properties.
+    (push (cons entry pn) *deferred-directories*))
+  #-tar-extract-use-openat
+  (progn
+    (ensure-directories-exist (merge-pathnames pn))
     (push (cons entry pn) *deferred-directories*)))
 
+#-windows
 (defmethod extract-entry ((entry tar:fifo-entry) pn &key mask &allow-other-keys)
   (let ((dir-fd (fd (openat *destination-dir-fd* (uiop:pathname-directory-pathname pn) nix:s-irwxu))))
     (with-fd (dir-fd)
-      #-darwin
+      #+tar-extract-use-mkfifoat
       (nix:mkfifoat dir-fd (file-namestring pn) (tar::permissions-to-mode
                                                  (set-difference (tar:mode entry)
                                                                  mask)))
-      #+darwin
+      #-tar-extract-use-mkfifoat
       (nix:mkfifo (merge-pathnames pn) (tar::permissions-to-mode
                                         (set-difference (tar:mode entry)
                                                         mask))))))
 
+#+windows
+(defmethod extract-entry ((entry tar:fifo-entry) pn &key &allow-other-keys)
+  (error 'unsupported-fifo-entry-error :entry entry))
+
+#+windows
+(defmethod extract-entry ((entry tar:block-device-entry) pn &key &allow-other-keys)
+  (error 'unsupported-block-device-entry-error :entry entry))
+
+#+windows
+(defmethod extract-entry ((entry tar:character-device-entry) pn &key &allow-other-keys)
+  (error 'unsupported-character-device-entry-error :entry entry))
+
+#-windows
 (defmethod extract-entry ((entry tar:symbolic-link-entry) pn &key &allow-other-keys)
   (let ((dir-fd (fd (openat *destination-dir-fd* (uiop:pathname-directory-pathname pn) nix:s-irwxu))))
     (with-fd (dir-fd)
       (nix:symlinkat (tar:linkname entry) dir-fd (file-namestring pn)))))
 
+#+windows
+(defmethod extract-entry ((entry tar:symbolic-link-entry) pn &key &allow-other-keys)
+  (restart-case
+      (error 'unsupported-symbolic-link-entry-error :entry entry)
+    (dereference-link ()
+      (push (list entry pn :symbolic) *deferred-links*))))
+
+#-windows
 (defmethod extract-entry ((entry tar:hard-link-entry) pn &key &allow-other-keys)
   (let* ((dir-fd (fd (openat *destination-dir-fd* (uiop:pathname-directory-pathname pn) nix:s-irwxu)))
          (destination-pn (uiop:parse-unix-namestring (tar:linkname entry)
@@ -395,3 +456,10 @@ non-NIL if the entry should be extracted."
       (unless (or (eql destination-dir-fd *destination-dir-fd*)
                   (eql destination-dir-fd dir-fd))
         (nix:close destination-dir-fd)))))
+
+#+windows
+(defmethod extract-entry ((entry tar:hard-link-entry) pn &key &allow-other-keys)
+  (restart-case
+      (error 'unsupported-hard-link-entry-error :entry entry)
+    (dereference-link ()
+      (push (list entry pn :hard) *deferred-links*))))
