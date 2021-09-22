@@ -16,7 +16,7 @@
   :components ((:file "package")
                (:file "conditions" :depends-on ("package"))
                (:file "features" :depends-on ("package"))
-               (:file "utils" :depends-on ("package"))
+               (:file "utils" :depends-on ("package" "features"))
                (:file "fd-stream" :depends-on ("package" "utils" "features"))
                (:file "extract" :depends-on ("package" "conditions" "utils" "features"))))
 

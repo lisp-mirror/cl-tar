@@ -9,9 +9,223 @@
 #+tar-extract-use-openat
 (defvar *destination-dir-fd*)
 
-#-windows
-(defun rootp ()
-  (not (zerop (nix:getuid))))
+
+;;; Directory permissions
+
+#+tar-extract-use-openat
+(defun handle-deferred-directory (entry pn
+                                  &key
+                                    touch no-same-owner numeric-uid mask)
+  (with-fd (fd (fd (openat *destination-dir-fd* pn
+                           (logior nix:s-irusr
+                                   nix:s-iwusr
+                                   nix:s-ixusr))))
+    (unless touch
+      (set-utimes entry :fd fd))
+    (set-permissions entry mask :fd fd)
+    (unless no-same-owner
+      (set-owner entry numeric-uid :fd fd))))
+
+#-tar-extract-use-openat
+(defun handle-deferred-directory (entry pn
+                                  &key
+                                    touch no-same-owner numeric-uid mask)
+
+  (set-permissions entry mask :pn pn))
+
+
+;;; Symbolic links
+
+(defun link-target-exists-p (pair)
+  (let ((entry (first pair))
+        (pn (second pair))
+        (type (third pair)))
+    (probe-file (merge-pathnames (tar:linkname entry)
+                                 (if (eql type :hard)
+                                     *default-pathname-defaults*
+                                     (merge-pathnames pn))))))
+
+(defun process-deferred-links-1 (deferred-links if-exists if-newer-exists)
+  (let ((actionable-links (remove-if-not 'link-target-exists-p deferred-links)))
+    (dolist (actionable-link actionable-links)
+      (destructuring-bind (entry pn type) actionable-link
+        (let ((pn (merge-pathnames pn)))
+          (unless (null (probe-file pn))
+            (let ((file-write-date (file-write-date pn)))
+              (when (and (not (null file-write-date))
+                         (> file-write-date (local-time:timestamp-to-universal (tar:mtime entry))))
+                (setf if-exists if-newer-exists))))
+          (when (eql if-exists :keep)
+            (setf if-exists nil))
+          (with-open-file (s pn :direction :output
+                                :element-type '(unsigned-byte 8)
+                                :if-exists if-exists)
+            (unless (null s)
+              (with-open-file (source (merge-pathnames (tar:linkname entry)
+                                                       (if (eql type :hard)
+                                                           *default-pathname-defaults*
+                                                           pn))
+                                      :element-type '(unsigned-byte 8))
+                (uiop:copy-stream-to-stream source s :element-type '(unsigned-byte 8))))))))
+    (set-difference deferred-links actionable-links)))
+
+(defun process-deferred-links (deferred-links if-exists if-newer-exists)
+  (loop
+    :for prev-links := deferred-links :then links
+    :for links := (process-deferred-links-1 prev-links if-exists if-newer-exists)
+    :while links
+    :when (= (length links) (length prev-links))
+      :do (restart-case
+              (error 'broken-or-circular-links-error)
+            (continue () (return)))))
+
+
+;;; Extracting entries
+
+(defgeneric extract-entry (entry pn &key mask numeric-uid no-same-owner touch keep-directory-metadata))
+
+(defmethod extract-entry ((entry tar:file-entry) pn
+                          &key touch no-same-owner numeric-uid mask
+                            &allow-other-keys)
+  #+windows (declare (ignore no-same-owner numeric-uid))
+  (with-open-stream (stream #+tar-extract-use-openat (openat *destination-dir-fd* pn
+                                                             (logior nix:s-irusr
+                                                                     nix:s-iwusr))
+                            #-tar-extract-use-openat (my-open pn (logior nix:s-irusr nix:s-iwusr)))
+    (uiop:copy-stream-to-stream (tar:make-entry-stream entry) stream
+                                :element-type '(unsigned-byte 8))
+    (unless touch
+      (set-utimes entry :fd (fd stream)))
+    (set-permissions entry mask :fd (fd stream) :pn pn)
+    #-windows
+    (unless no-same-owner
+      (set-owner entry numeric-uid :fd (fd stream)))))
+
+(defmethod extract-entry ((entry tar:directory-entry) pn &key keep-directory-metadata &allow-other-keys)
+  #+tar-extract-use-openat
+  (with-fd (dirfd (fd (openat *destination-dir-fd* pn
+                              (logior nix:s-irusr
+                                      nix:s-iwusr
+                                      nix:s-ixusr))))
+    (declare (ignore dirfd))
+    ;; Enqueue this to later set its properties.
+    (unless keep-directory-metadata
+      (push (cons entry pn) *deferred-directories*)))
+  #-tar-extract-use-openat
+  (progn
+    (ensure-directories-exist (merge-pathnames pn))
+    (unless keep-directory-metadata
+      (push (cons entry pn) *deferred-directories*))))
+
+(defmethod extract-entry ((entry tar:symbolic-link-entry) pn &key touch no-same-owner numeric-uid
+                          &allow-other-keys)
+  #+windows (declare (ignore touch no-same-owner numeric-uid))
+  (restart-case
+      (error 'unsupported-symbolic-link-entry-error)
+    #-windows
+    (extract-link ()
+      (let ((dir-fd (fd (openat *destination-dir-fd* (uiop:pathname-directory-pathname pn) nix:s-irwxu))))
+        (with-fd (dir-fd)
+          (nix:symlinkat (tar:linkname entry) dir-fd (file-namestring pn))
+          ;; There's no great portable to get a file descriptor for a symlink,
+          ;; so we have to change utimes and owner by pathname.
+          (unless touch
+            (set-utimes entry :dirfd dir-fd :pn (file-namestring pn)))
+          (unless no-same-owner
+            (set-owner entry numeric-uid :dirfd dir-fd :pn (file-namestring pn))))))
+    (dereference-link ()
+      (push (list entry pn :symbolic) *deferred-links*))))
+
+(defmethod extract-entry ((entry tar:hard-link-entry) pn &key &allow-other-keys)
+  (restart-case
+      (error 'unsupported-hard-link-entry-error)
+    #-windows
+    (extract-link ()
+      (let ((destination-pn (uiop:parse-unix-namestring (tar:linkname entry)
+                                                        :dot-dot :back)))
+        (with-fd (dir-fd (fd (openat *destination-dir-fd* (uiop:pathname-directory-pathname pn) nix:s-irwxu)))
+          (with-fd (destination-dir-fd (fd (openat *destination-dir-fd*
+                                                   (uiop:pathname-directory-pathname destination-pn)
+                                                   nix:s-irwxu)))
+            (nix:linkat destination-dir-fd (file-namestring destination-pn)
+                        dir-fd (file-namestring pn) 0)))))
+    (dereference-link ()
+      (push (list entry pn :hard) *deferred-links*))))
+
+(defmethod extract-entry ((entry tar:fifo-entry) pn &key mask touch no-same-owner numeric-uid &allow-other-keys)
+  #+windows (declare (ignore mask touch no-same-owner numeric-uid))
+  (restart-case
+      (error 'unsupported-fifo-entry-error)
+    #-windows
+    (extract-fifo ()
+      (let ((dir-fd (fd (openat *destination-dir-fd* (uiop:pathname-directory-pathname pn) nix:s-irwxu))))
+        (with-fd (dir-fd)
+          #+tar-extract-use-mkfifoat
+          (nix:mkfifoat dir-fd (file-namestring pn) (tar::permissions-to-mode
+                                                     (set-difference (tar:mode entry)
+                                                                     mask)))
+          #-tar-extract-use-mkfifoat
+          (nix:mkfifo (merge-pathnames pn) (tar::permissions-to-mode
+                                            (set-difference (tar:mode entry)
+                                                            mask)))
+          (with-fd (fifo-fd (nix:openat dir-fd (file-namestring pn)
+                                        (logior nix:o-rdonly
+                                                nix:o-nofollow
+                                                nix:o-nonblock)))
+            (unless touch
+              (set-utimes entry :fd fifo-fd))
+            (set-permissions entry mask :fd fifo-fd)
+            (unless no-same-owner
+              (set-owner entry numeric-uid :fd fifo-fd))))))))
+
+(defmethod extract-entry ((entry tar:block-device-entry) pn &key touch no-same-owner numeric-uid mask
+                          &allow-other-keys)
+  #+windows (declare (ignore touch no-same-owner numeric-uid mask))
+  (restart-case
+      (error 'unsupported-block-device-entry-error :entry entry)
+    #-windows
+    (extract-device ()
+      (let ((dir-fd (fd (openat *destination-dir-fd* (uiop:pathname-directory-pathname pn) nix:s-irwxu))))
+        (with-fd (dir-fd)
+          (nix:mknodat dir-fd (file-namestring pn)
+                       (logior nix:s-ifblk
+                               (tar::permissions-to-mode (tar:mode entry)))
+                       (nix:makedev (tar:devmajor entry) (tar:devminor entry)))
+          (with-fd (dev-fd (nix:openat dir-fd (file-namestring pn)
+                                       (logior nix:o-rdonly
+                                               nix:o-nofollow
+                                               nix:o-nonblock)))
+            (unless touch
+              (set-utimes entry :fd dev-fd))
+            (set-permissions entry mask :fd dev-fd)
+            (unless no-same-owner
+              (set-owner entry numeric-uid :fd dev-fd))))))))
+
+(defmethod extract-entry ((entry tar:character-device-entry) pn &key touch no-same-owner numeric-uid mask
+                          &allow-other-keys)
+  #+windows (declare (ignore touch no-same-owner numeric-uid mask))
+  (restart-case
+      (error 'unsupported-character-device-entry-error :entry entry)
+    #-windows
+    (extract-device ()
+      (let ((dir-fd (fd (openat *destination-dir-fd* (uiop:pathname-directory-pathname pn) nix:s-irwxu))))
+        (with-fd (dir-fd)
+          (nix:mknodat dir-fd (file-namestring pn)
+                       (logior nix:s-ifchr
+                               (tar::permissions-to-mode (tar:mode entry)))
+                       (nix:makedev (tar:devmajor entry) (tar:devminor entry)))
+          (with-fd (dev-fd (nix:openat dir-fd (file-namestring pn)
+                                       (logior nix:o-rdonly
+                                               nix:o-nofollow
+                                               nix:o-nonblock)))
+            (unless touch
+              (set-utimes entry :fd dev-fd))
+            (set-permissions entry mask :fd dev-fd)
+            (unless no-same-owner
+              (set-owner entry numeric-uid :fd dev-fd))))))))
+
+
+;;; Extract archive
 
 (defun extract-archive (archive
                         &key
@@ -292,7 +506,8 @@ the CONTINUE restart active."
                                      :mask mask
                                      :numeric-uid numeric-uid
                                      :no-same-owner no-same-owner
-                                     :touch touch))))
+                                     :touch touch
+                                     :keep-directory-metadata keep-directory-metadata))))
               (skip-entry ()))))
         (process-deferred-links *deferred-links* if-exists if-newer-exists)
         (dolist (pair *deferred-directories*)
@@ -302,270 +517,3 @@ the CONTINUE restart active."
                                      :no-same-owner no-same-owner
                                      :touch touch))
         (values)))))
-
-(defun link-target-exists-p (pair)
-  (let ((entry (first pair))
-        (pn (second pair))
-        (type (third pair)))
-    (probe-file (merge-pathnames (tar:linkname entry)
-                                 (if (eql type :hard)
-                                     *default-pathname-defaults*
-                                     (merge-pathnames pn))))))
-
-(defun process-deferred-links-1 (deferred-links if-exists if-newer-exists)
-  (let ((actionable-links (remove-if-not 'link-target-exists-p deferred-links)))
-    (dolist (actionable-link actionable-links)
-      (destructuring-bind (entry pn type) actionable-link
-        (let ((pn (merge-pathnames pn)))
-          (unless (null (probe-file pn))
-            (let ((file-write-date (file-write-date pn)))
-              (when (and (not (null file-write-date))
-                         (> file-write-date (local-time:timestamp-to-universal (tar:mtime entry))))
-                (setf if-exists if-newer-exists))))
-          (when (eql if-exists :keep)
-            (setf if-exists nil))
-          (with-open-file (s pn :direction :output
-                                :element-type '(unsigned-byte 8)
-                                :if-exists if-exists)
-            (unless (null s)
-              (with-open-file (source (merge-pathnames (tar:linkname entry)
-                                                       (if (eql type :hard)
-                                                           *default-pathname-defaults*
-                                                           pn))
-                                      :element-type '(unsigned-byte 8))
-                (uiop:copy-stream-to-stream source s :element-type '(unsigned-byte 8))))))))
-    (set-difference deferred-links actionable-links)))
-
-(defun process-deferred-links (deferred-links if-exists if-newer-exists)
-  (loop
-    :for prev-links := deferred-links :then links
-    :for links := (process-deferred-links-1 prev-links if-exists if-newer-exists)
-    :while links
-    :when (= (length links) (length prev-links))
-      :do (restart-case
-              (error 'broken-or-circular-links-error)
-            (continue () (return)))))
-
-(defgeneric extract-entry (entry pn &key))
-
-#-windows
-(defun safe-getpwnam (uname)
-  (unless (null uname)
-    (nix:getpwnam uname)))
-
-#-windows
-(defun safe-getgrnam (gname)
-  (unless (null gname)
-    (nix:getgrnam gname)))
-
-(defgeneric set-utimes (entry &key fd pn dirfd))
-
-(defmethod set-utimes (entry &key fd pn dirfd)
-  (let ((atime (and (slot-boundp entry 'tar:atime) (tar:atime entry)))
-        (mtime (tar:mtime entry))
-        atime-sec atime-nsec
-        mtime-sec mtime-nsec)
-    (if (null atime)
-        #+tar-extract-use-utimens
-        (setf atime-sec 0
-              atime-nsec nix:utime-omit)
-        #-tar-extract-use-utimens
-        (setf atime-sec (nix:stat-atime (nix:fstat fd)))
-        (setf atime-sec (local-time:timestamp-to-unix atime)
-              atime-nsec (local-time:nsec-of atime)))
-    (if (null mtime)
-        #+tar-extract-use-utimens
-        (setf mtime-sec 0
-              mtime-nsec nix:utime-omit)
-        #-tar-extract-use-utimens
-        (setf mtime-sec (nix:stat-mtime (nix:fstat fd)))
-        (setf mtime-sec (local-time:timestamp-to-unix mtime)
-              mtime-nsec (local-time:nsec-of mtime)))
-    #+tar-extract-use-utimens
-    (if (not (null dirfd))
-        (nix:utimensat dirfd pn atime-sec atime-nsec mtime-sec mtime-nsec nix:at-symlink-nofollow)
-        (nix:futimens fd atime-sec atime-nsec mtime-sec mtime-nsec))
-    #-tar-extract-use-utimens
-    (nix:futime fd atime-sec mtime-sec)))
-
-(defgeneric set-permissions (entry mask &key fd pn))
-
-(defmethod set-permissions (entry mask &key fd pn)
-  #-windows
-  (nix:fchmod fd (tar::permissions-to-mode (set-difference (tar:mode entry)
-                                                           mask)))
-  #+windows
-  (nix:chmod (merge-pathnames pn) (tar::permissions-to-mode
-                                   (intersection (list :user-read :user-write)
-                                                 (set-difference (tar:mode entry) mask)))))
-
-#-windows
-(defgeneric set-owner (entry numeric-uid &key fd pn))
-
-#-windows
-(defmethod set-owner (entry numeric-uid &key fd pn dirfd)
-  (let ((owner (if numeric-uid
-                   (tar:uid entry)
-                   (or (nth-value 2 (safe-getpwnam (tar:uname entry)))
-                       (tar:uid entry))))
-        (group (if numeric-uid
-                   (tar:gid entry)
-                   (or (nth-value 2 (safe-getgrnam (tar:gname entry)))
-                       (tar:gid entry)))))
-    (if (null dirfd)
-        (nix:fchown fd owner group)
-        (nix:fchownat dirfd pn owner group nix:at-symlink-nofollow))))
-
-(defmethod extract-entry ((entry tar:file-entry) pn
-                          &key touch no-same-owner numeric-uid mask)
-  ;; First, get a handle on the directory.
-  (with-open-stream (stream #+tar-extract-use-openat (openat *destination-dir-fd* pn
-                                                             (logior nix:s-irusr
-                                                                     nix:s-iwusr))
-                            #-tar-extract-use-openat (my-open pn (logior nix:s-irusr nix:s-iwusr)))
-    (uiop:copy-stream-to-stream (tar:make-entry-stream entry) stream
-                                :element-type '(unsigned-byte 8))
-    (unless touch
-      (set-utimes entry :fd (fd stream)))
-    (set-permissions entry mask :fd (fd stream) :pn pn)
-    #-windows
-    (unless no-same-owner
-      (set-owner entry numeric-uid :fd (fd stream)))))
-
-#+tar-extract-use-openat
-(defun handle-deferred-directory (entry pn
-                                  &key
-                                    touch no-same-owner numeric-uid mask)
-  (with-fd (fd (fd (openat *destination-dir-fd* pn
-                           (logior nix:s-irusr
-                                   nix:s-iwusr
-                                   nix:s-ixusr))))
-    (unless touch
-      (set-utimes entry :fd fd))
-    (set-permissions entry mask :fd fd)
-    (unless no-same-owner
-      (set-owner entry numeric-uid :fd fd))))
-
-#-tar-extract-use-openat
-(defun handle-deferred-directory (entry pn
-                                  &key
-                                    touch no-same-owner numeric-uid mask)
-
-  (set-permissions entry mask :pn pn))
-
-(defmethod extract-entry ((entry tar:directory-entry) pn &key &allow-other-keys)
-  #+tar-extract-use-openat
-  (with-fd (dirfd (fd (openat *destination-dir-fd* pn
-                              (logior nix:s-irusr
-                                      nix:s-iwusr
-                                      nix:s-ixusr))))
-    (declare (ignore dirfd))
-    ;; Enqueue this to later set its properties.
-    (push (cons entry pn) *deferred-directories*))
-  #-tar-extract-use-openat
-  (progn
-    (ensure-directories-exist (merge-pathnames pn))
-    (push (cons entry pn) *deferred-directories*)))
-
-(defmethod extract-entry ((entry tar:fifo-entry) pn &key mask touch no-same-owner numeric-uid &allow-other-keys)
-  (restart-case
-      (error 'unsupported-fifo-entry-error)
-    #-windows
-    (extract-fifo ()
-      (let ((dir-fd (fd (openat *destination-dir-fd* (uiop:pathname-directory-pathname pn) nix:s-irwxu))))
-        (with-fd (dir-fd)
-          #+tar-extract-use-mkfifoat
-          (nix:mkfifoat dir-fd (file-namestring pn) (tar::permissions-to-mode
-                                                     (set-difference (tar:mode entry)
-                                                                     mask)))
-          #-tar-extract-use-mkfifoat
-          (nix:mkfifo (merge-pathnames pn) (tar::permissions-to-mode
-                                            (set-difference (tar:mode entry)
-                                                            mask)))
-          (with-fd (fifo-fd (nix:openat dir-fd (file-namestring pn)
-                                        (logior nix:o-rdonly
-                                                nix:o-nofollow
-                                                nix:o-nonblock)))
-            (unless touch
-              (set-utimes entry :fd fifo-fd))
-            (set-permissions entry mask :fd fifo-fd)
-            (unless no-same-owner
-              (set-owner entry numeric-uid :fd fifo-fd))))))))
-
-(defmethod extract-entry ((entry tar:block-device-entry) pn &key touch no-same-owner numeric-uid mask
-                          &allow-other-keys)
-  (restart-case
-      (error 'unsupported-block-device-entry-error :entry entry)
-    #-windows
-    (extract-device ()
-      (let ((dir-fd (fd (openat *destination-dir-fd* (uiop:pathname-directory-pathname pn) nix:s-irwxu))))
-        (with-fd (dir-fd)
-          (nix:mknodat dir-fd (file-namestring pn)
-                       (logior nix:s-ifblk
-                               (tar::permissions-to-mode (tar:mode entry)))
-                       (nix:makedev (tar:devmajor entry) (tar:devminor entry)))
-          (with-fd (dev-fd (nix:openat dir-fd (file-namestring pn)
-                                       (logior nix:o-rdonly
-                                               nix:o-nofollow
-                                               nix:o-nonblock)))
-            (unless touch
-              (set-utimes entry :fd dev-fd))
-            (set-permissions entry mask :fd dev-fd)
-            (unless no-same-owner
-              (set-owner entry numeric-uid :fd dev-fd))))))))
-
-(defmethod extract-entry ((entry tar:character-device-entry) pn &key touch no-same-owner numeric-uid mask
-                          &allow-other-keys)
-  (restart-case
-      (error 'unsupported-character-device-entry-error :entry entry)
-    #-windows
-    (extract-device ()
-      (let ((dir-fd (fd (openat *destination-dir-fd* (uiop:pathname-directory-pathname pn) nix:s-irwxu))))
-        (with-fd (dir-fd)
-          (nix:mknodat dir-fd (file-namestring pn)
-                       (logior nix:s-ifchr
-                               (tar::permissions-to-mode (tar:mode entry)))
-                       (nix:makedev (tar:devmajor entry) (tar:devminor entry)))
-          (with-fd (dev-fd (nix:openat dir-fd (file-namestring pn)
-                                       (logior nix:o-rdonly
-                                               nix:o-nofollow
-                                               nix:o-nonblock)))
-            (unless touch
-              (set-utimes entry :fd dev-fd))
-            (set-permissions entry mask :fd dev-fd)
-            (unless no-same-owner
-              (set-owner entry numeric-uid :fd dev-fd))))))))
-
-(defmethod extract-entry ((entry tar:symbolic-link-entry) pn &key touch no-same-owner numeric-uid
-                          &allow-other-keys)
-  (restart-case
-      (error 'unsupported-symbolic-link-entry-error)
-    #-windows
-    (extract-link ()
-      (let ((dir-fd (fd (openat *destination-dir-fd* (uiop:pathname-directory-pathname pn) nix:s-irwxu))))
-        (with-fd (dir-fd)
-          (nix:symlinkat (tar:linkname entry) dir-fd (file-namestring pn))
-          ;; There's no great portable to get a file descriptor for a symlink,
-          ;; so we have to change utimes and owner by pathname.
-          (unless touch
-            (set-utimes entry :dirfd dir-fd :pn (file-namestring pn)))
-          (unless no-same-owner
-            (set-owner entry numeric-uid :dirfd dir-fd :pn (file-namestring pn))))))
-    (dereference-link ()
-      (push (list entry pn :symbolic) *deferred-links*))))
-
-(defmethod extract-entry ((entry tar:hard-link-entry) pn &key &allow-other-keys)
-  (restart-case
-      (error 'unsupported-hard-link-entry-error)
-    #-windows
-    (extract-link ()
-      (let ((destination-pn (uiop:parse-unix-namestring (tar:linkname entry)
-                                                        :dot-dot :back)))
-        (with-fd (dir-fd (fd (openat *destination-dir-fd* (uiop:pathname-directory-pathname pn) nix:s-irwxu)))
-          (with-fd (destination-dir-fd (fd (openat *destination-dir-fd*
-                                                   (uiop:pathname-directory-pathname destination-pn)
-                                                   nix:s-irwxu)))
-            (nix:linkat destination-dir-fd (file-namestring destination-pn)
-                        dir-fd (file-namestring pn) 0)))))
-    (dereference-link ()
-      (push (list entry pn :hard) *deferred-links*))))
