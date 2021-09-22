@@ -1,11 +1,11 @@
 ;;; -*- mode: lisp -*-
 
 (asdf:defsystem #:tar-extract
-  :version "0.0.1"
+  :version "0.1.0"
   :author "Eric Timmons <eric@timmons.dev>"
   :description "A system to extract tar archives to the filesystem."
   :license "MIT"
-  :depends-on ("alexandria" "local-time" "osicat" "tar" "uiop" "40ants-doc" "tar-common-extract")
+  :depends-on ("alexandria" "local-time" "osicat" "tar" "uiop" "tar-common-extract")
   :pathname "src/extract"
   :in-order-to ((test-op (load-op "tar-extract/test")))
   :perform (test-op (o c)

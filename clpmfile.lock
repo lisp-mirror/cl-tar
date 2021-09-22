@@ -68,7 +68,7 @@
 ("cl-ppcre" :version "2019-05-21" :source "quicklisp" :systems
  ("cl-ppcre" "cl-ppcre-unicode"))
 ("cl-str" :version "2021-05-31" :source "quicklisp" :systems ("str"))
-("cl-tar-file" :version (:commit "46b1fa684f861aa5a8891073759e392008d7b8c8")
+("cl-tar-file" :version (:commit "ff5d41cc7e2229833f2bcadfff3ab0bc413cef97")
  :source :implicit-vcs :systems ("tar-file" "tar-file/test"))
 ("cl-unicode" :version "2021-02-28" :source "quicklisp" :systems ("cl-unicode"))
 ("closer-mop" :version "2021-08-07" :source "quicklisp" :systems ("closer-mop"))
@@ -180,11 +180,8 @@
 
 ("colorize" ((:system :name "3bmd-ext-code-blocks") (:system :name "colorize")))
 
-("doc" ((:system :name "tar-simple-extract") (:system :name "40ants-doc"))
- ((:system :name "tar-file") (:system :name "40ants-doc"))
- ((:system :name "tar-extract") (:system :name "40ants-doc"))
+("doc" ((:system :name "tar-file") (:system :name "40ants-doc"))
  ((:system :name "tar-docs") (:system :name "40ants-doc"))
- ((:system :name "tar-common-extract") (:system :name "40ants-doc"))
  ((:system :name "tar") (:system :name "40ants-doc"))
  (t (:system :name "40ants-doc-full")))
 

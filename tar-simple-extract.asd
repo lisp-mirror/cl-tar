@@ -1,11 +1,11 @@
 ;;; -*- mode: lisp -*-
 
 (asdf:defsystem #:tar-simple-extract
-  :version "0.0.1"
+  :version "0.1.0"
   :author "Eric Timmons <eric@timmons.dev>"
   :description "A system to extract tar archives to the filesystem using only portable CL constructs."
   :license "MIT"
-  :depends-on ("tar" "tar-common-extract" "uiop" "40ants-doc" "local-time")
+  :depends-on ("tar" "tar-common-extract" "uiop" "local-time")
   :pathname "src/simple-extract"
   :in-order-to ((test-op (load-op "tar-simple-extract/test")))
   :perform (test-op (o c)

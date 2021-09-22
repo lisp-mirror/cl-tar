@@ -1,7 +1,7 @@
 ;;; -*- mode: lisp -*-
 
 (asdf:defsystem #:tar
-  :version "0.0.1"
+  :version "0.1.0"
   :author "Eric Timmons <eric@timmons.dev>"
   :description "A high level interface for tar archives"
   :license "MIT"
