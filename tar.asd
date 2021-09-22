@@ -30,4 +30,4 @@
                (:file "read" :depends-on ("package" "shared"))
                (:file "shared" :depends-on ("package"))
                (:file "write" :depends-on ("package" "shared")))
-  :depends-on (#:tar #:parachute))
+  :depends-on ("tar" "parachute"))

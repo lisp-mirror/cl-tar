@@ -78,8 +78,6 @@
 ("documentation-utils" :version "2019-07-11" :source "quicklisp" :systems
  ("documentation-utils"))
 ("esrap" :version "2020-12-20" :source "quicklisp" :systems ("esrap"))
-("file-attributes" :version "2021-08-07" :source "quicklisp" :systems
- ("file-attributes"))
 ("flexi-streams" :version "2021-08-07" :source "quicklisp" :systems
  ("flexi-streams"))
 ("form-fiddle" :version "2019-07-11" :source "quicklisp" :systems
@@ -143,7 +141,6 @@
  ((:system :name "3bmd") (:system :name "alexandria")))
 
 ("babel" ((:system :name "tar-file") (:system :name "babel"))
- ((:system :name "tar-extract") (:system :name "babel"))
  ((:system :name "tar") (:system :name "babel"))
  ((:system :name "cffi") (:system :name "babel")))
 
@@ -151,12 +148,10 @@
  ((:system :name "ironclad") (:system :name "bordeaux-threads"))
  ((:system :name "cl-fad") (:system :name "bordeaux-threads")))
 
-("cffi" ((:system :name "tar-extract") (:system :name "cffi"))
- ((:system :name "osicat/tests") (:system :name "cffi-grovel"))
+("cffi" ((:system :name "osicat/tests") (:system :name "cffi-grovel"))
  ((:system :name "osicat") (:system :name "cffi"))
  ((:system :name "osicat") (:system :name "cffi-grovel"))
  ((:system :name "osicat") (:system :name "cffi-grovel"))
- ((:system :name "file-attributes") (:system :name "cffi"))
  ((:system :name "cffi-toolchain") (:system :name "cffi"))
  ((:system :name "cffi-grovel") (:system :name "cffi"))
  ((:system :name "cffi-grovel") (:system :name "cffi-toolchain")))
@@ -195,13 +190,9 @@
 
 ("documentation-utils"
  ((:system :name "parachute") (:system :name "documentation-utils"))
- ((:system :name "form-fiddle") (:system :name "documentation-utils"))
- ((:system :name "file-attributes") (:system :name "documentation-utils")))
+ ((:system :name "form-fiddle") (:system :name "documentation-utils")))
 
 ("esrap" ((:system :name "3bmd") (:system :name "esrap")))
-
-("file-attributes"
- ((:system :name "tar-extract") (:system :name "file-attributes")))
 
 ("flexi-streams" (t (:system :name "flexi-streams")))
 
@@ -237,7 +228,6 @@
 ("slime" (t (:system :name "swank")))
 
 ("split-sequence"
- ((:system :name "tar-extract") (:system :name "split-sequence"))
  ((:system :name "tar-common-extract") (:system :name "split-sequence"))
  ((:system :name "tar") (:system :name "split-sequence"))
  ((:system :name "colorize") (:system :name "split-sequence"))
@@ -273,7 +263,6 @@
  ((:system :name "osicat/tests") (:system :name "trivial-features"))
  ((:system :name "osicat") (:system :name "trivial-features"))
  ((:system :name "osicat") (:system :name "trivial-features"))
- ((:system :name "file-attributes") (:system :name "trivial-features"))
  ((:system :name "cffi") (:system :name "trivial-features"))
  ((:system :name "babel") (:system :name "trivial-features")))
 

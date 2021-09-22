@@ -5,7 +5,7 @@
   :author "Eric Timmons <eric@timmons.dev>"
   :description "A system to extract tar archives to the filesystem."
   :license "MIT"
-  :depends-on ("alexandria" "babel" "cffi" "file-attributes" "local-time" "osicat" "split-sequence" "tar" "uiop" "40ants-doc" "tar-common-extract")
+  :depends-on ("alexandria" "local-time" "osicat" "tar" "uiop" "40ants-doc" "tar-common-extract")
   :pathname "src/extract"
   :in-order-to ((test-op (load-op "tar-extract/test")))
   :perform (test-op (o c)
@@ -26,4 +26,4 @@
                (:file "utils" :depends-on ("package"))
                (:file "extract" :depends-on ("package" "utils"))
                (:file "stress" :depends-on ("package" "utils")))
-  :depends-on (#:tar-extract #:parachute))
+  :depends-on ("tar-extract" "parachute"))
