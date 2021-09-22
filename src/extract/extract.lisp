@@ -121,7 +121,7 @@
                           &allow-other-keys)
   #+windows (declare (ignore touch no-same-owner numeric-uid))
   (restart-case
-      (error 'unsupported-symbolic-link-entry-error)
+      (error 'extract-symbolic-link-entry-error)
     #-windows
     (extract-link ()
       (let ((dir-fd (fd (openat *destination-dir-fd* (uiop:pathname-directory-pathname pn) nix:s-irwxu))))
@@ -138,7 +138,7 @@
 
 (defmethod extract-entry ((entry tar:hard-link-entry) pn &key &allow-other-keys)
   (restart-case
-      (error 'unsupported-hard-link-entry-error)
+      (error 'extract-hard-link-entry-error)
     #-windows
     (extract-link ()
       (let ((destination-pn (uiop:parse-unix-namestring (tar:linkname entry)
@@ -155,7 +155,7 @@
 (defmethod extract-entry ((entry tar:fifo-entry) pn &key mask touch no-same-owner numeric-uid &allow-other-keys)
   #+windows (declare (ignore mask touch no-same-owner numeric-uid))
   (restart-case
-      (error 'unsupported-fifo-entry-error)
+      (error 'extract-fifo-entry-error)
     #-windows
     (extract-fifo ()
       (let ((dir-fd (fd (openat *destination-dir-fd* (uiop:pathname-directory-pathname pn) nix:s-irwxu))))
@@ -182,7 +182,7 @@
                           &allow-other-keys)
   #+windows (declare (ignore touch no-same-owner numeric-uid mask))
   (restart-case
-      (error 'unsupported-block-device-entry-error :entry entry)
+      (error 'extract-block-device-entry-error :entry entry)
     #-windows
     (extract-device ()
       (let ((dir-fd (fd (openat *destination-dir-fd* (uiop:pathname-directory-pathname pn) nix:s-irwxu))))
@@ -205,7 +205,7 @@
                           &allow-other-keys)
   #+windows (declare (ignore touch no-same-owner numeric-uid mask))
   (restart-case
-      (error 'unsupported-character-device-entry-error :entry entry)
+      (error 'extract-character-device-entry-error :entry entry)
     #-windows
     (extract-device ()
       (let ((dir-fd (fd (openat *destination-dir-fd* (uiop:pathname-directory-pathname pn) nix:s-irwxu))))
@@ -324,19 +324,19 @@ DIRECTORY if extracting ARCHIVE would overwrite them and the existing file has
 a more recent mtime. It defaults to :ERROR. The possible values are:
 
 + :ERROR : A DESTINATION-EXISTS-ERROR is signaled, with the restarts
-  SUPERSEDE-FILE, RENAME-AND-REPLACE-FILE, and SKIP-ENTRY active
+  SUPERSEDE-FILE, REMOVE-FILE, and SKIP-ENTRY active
 + NIL, :SKIP, :KEEP : existing files are skipped
 + :SUPERSEDE : Overwrite the file
-+ :RENAME-AND-DELETE : Delete file and replace it, atomically if possible.
++ :REPLACE : Delete file and replace it, atomically if possible.
 
 IF-EXISTS controls what happens to files that already exist within
 DIRECTORY. It defaults to :ERROR. The possible values are:
 
 + :ERROR : A DESTINATION-EXISTS-ERROR is signaled, with the restarts
-  SUPERSEDE-FILE, RENAME-AND-REPLACE-FILE, and SKIP-ENTRY active
+  SUPERSEDE-FILE, REMOVE-FILE, and SKIP-ENTRY active
 + NIL, :SKIP, :KEEP : existing files are skipped
 + :SUPERSEDE : Overwrite the file
-+ :RENAME-AND-DELETE : Delete file and replace it, atomically if possible.
++ :REPLACE : Delete file and replace it, atomically if possible.
 
 
 The following options configure how metadata is extracted.
@@ -363,7 +363,7 @@ possible values are:
 + :DEREFERENCE : any symlink entries are instead written as normal files with
   the contents of the file they point to.
 + :SKIP : Skip the symlink.
-+ :ERROR : Signal a UNSUPPORTED-SYMBOLIC-LINK-ENTRY-ERROR with the restarts
++ :ERROR : Signal a EXTRACT-SYMBOLIC-LINK-ENTRY-ERROR with the restarts
   EXTRACT-LINK, DEREFERENCE-LINK and SKIP-ENTRY active.
 
 HARD-LINKS controls how hard links are extracted from ARCHIVE. It defaults to T
@@ -373,7 +373,7 @@ on non-WINDOWS platforms and :DEREFERENCE on Windows. The possible values are:
 + :DEREFERENCE : any hard link entries are instead written as normal files with
   the contents of the file they point to.
 + :SKIP : Skip the hard link.
-+ :ERROR : Signal a UNSUPPORTED-HARD-LINK-ENTRY-ERROR with the restarts
++ :ERROR : Signal a EXTRACT-HARD-LINK-ENTRY-ERROR with the restarts
   EXTRACT-LINK, DEREFERENCE-LINK and SKIP-ENTRY active.
 
 CHARACTER-DEVICES controls how character devices are extracted from ARCHIVE. It
@@ -382,7 +382,7 @@ T otherwise. The possible values are:
 
 + T : Extract the character device.
 + :SKIP : Skip the entry.
-+ :ERROR : Signal a UNSUPPORTED-CHARACTER-DEVICE-ENTRY-ERROR with the restarts
++ :ERROR : Signal a EXTRACT-CHARACTER-DEVICE-ENTRY-ERROR with the restarts
   EXTRACT-DEVICE and SKIP-ENTRY active.
 
 BLOCK-DEVICES controls how block devices are extracted from ARCHIVE. It
@@ -391,7 +391,7 @@ T otherwise. The possible values are:
 
 + T : Extract the block device.
 + :SKIP : Skip the entry.
-+ :ERROR : Signal a UNSUPPORTED-BLOCK-DEVICE-ENTRY-ERROR with the restarts
++ :ERROR : Signal a EXTRACT-BLOCK-DEVICE-ENTRY-ERROR with the restarts
   EXTRACT-DEVICE and SKIP-ENTRY active.
 
 FIFOS controls how FIFOs are extracted from ARCHIVE. It defaults to T on
@@ -399,7 +399,7 @@ non-Windows platforms and :ERROR on Windows. The possible values are:
 
 + T : Extract the FIFO.
 + :SKIP : Skip the entry.
-+ :ERROR : Signal a UNSUPPORTED-FIFO-ENTRY-ERROR with the restarts EXTRACT-FIFO
++ :ERROR : Signal a EXTRACT-FIFO-ENTRY-ERROR with the restarts EXTRACT-FIFO
   and SKIP-ENTRY active.
 
 The following option controls what entries are extracted.
@@ -443,29 +443,29 @@ the CONTINUE restart active."
                  (:skip (skip-entry c))
                  (:relativize (relativize-entry-name c)))))
 
-           (unsupported-symbolic-link-entry-error
+           (extract-symbolic-link-entry-error
              (lambda (c)
                (case symbolic-links
                  (:skip (skip-entry c))
                  (:dereference (dereference-link c))
                  ((t) (extract-link c)))))
-           (unsupported-hard-link-entry-error
+           (extract-hard-link-entry-error
              (lambda (c)
                (case hard-links
                  (:skip (skip-entry c))
                  (:dereference (dereference-link c))
                  ((t) (extract-link c)))))
-           (unsupported-fifo-entry-error
+           (extract-fifo-entry-error
              (lambda (c)
                (case fifos
                  (:skip (skip-entry c))
                  ((t) (extract-fifo c)))))
-           (unsupported-block-device-entry-error
+           (extract-block-device-entry-error
              (lambda (c)
                (case block-devices
                  (:skip (skip-entry c))
                  ((t) (extract-device c)))))
-           (unsupported-character-device-entry-error
+           (extract-character-device-entry-error
              (lambda (c)
                (case character-devices
                  (:skip (skip-entry c))
@@ -491,11 +491,11 @@ the CONTINUE restart active."
                      (case if-newer-exists
                        ((nil :skip :keep) (skip-entry c))
                        (:supersede (invoke-restart 'supersede-file))
-                       (:rename-and-delete (invoke-restart 'rename-and-replace-file)))
+                       (:replace (invoke-restart 'remove-file)))
                      (case if-exists
                        ((nil :skip :keep) (skip-entry c))
                        (:supersede (invoke-restart 'supersede-file))
-                       (:rename-and-delete (invoke-restart 'rename-and-replace-file))))))))
+                       (:replace (invoke-restart 'remove-file))))))))
         (tar:do-entries (entry archive)
           (let ((*current-entry* entry))
             (restart-case

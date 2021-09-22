@@ -32,32 +32,27 @@
   (:documentation
    "An entry pathname is absolute."))
 
-(define-condition unsupported-entry-error (extraction-entry-error)
-  ()
-  (:documentation
-   "Base class for entry types that cannot be extracted."))
-
-(define-condition unsupported-fifo-entry-error (unsupported-entry-error)
+(define-condition extract-fifo-entry-error (extraction-entry-error)
   ()
   (:documentation
    "A FIFO that cannot be extracted."))
 
-(define-condition unsupported-symbolic-link-entry-error (unsupported-entry-error)
+(define-condition extract-symbolic-link-entry-error (extraction-entry-error)
   ()
   (:documentation
    "A symbolic link that cannot be extracted."))
 
-(define-condition unsupported-hard-link-entry-error (unsupported-entry-error)
+(define-condition extract-hard-link-entry-error (extraction-entry-error)
   ()
   (:documentation
    "A hard link that cannot be extracted."))
 
-(define-condition unsupported-block-device-entry-error (unsupported-entry-error)
+(define-condition extract-block-device-entry-error (extraction-entry-error)
   ()
   (:documentation
    "A block device that cannot be extracted."))
 
-(define-condition unsupported-character-device-entry-error (unsupported-entry-error)
+(define-condition extract-character-device-entry-error (extraction-entry-error)
   ()
   (:documentation
    "A character device that cannot be extracted."))

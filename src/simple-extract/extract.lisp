@@ -88,7 +88,7 @@ defaults to :DEREFERENCE. The possible values are:
 + :DEREFERENCE : any symlink entries are instead written as normal files with
   the contents of the file they point to.
 + :SKIP : Skip the symlink.
-+ :ERROR : Signal a UNSUPPORTED-SYMBOLIC-LINK-ENTRY-ERROR with the restarts
++ :ERROR : Signal a EXTRACT-SYMBOLIC-LINK-ENTRY-ERROR with the restarts
   DEREFERENCE-LINK and SKIP-ENTRY active.
 
 HARD-LINKS controls how hard links are extracted from ARCHIVE. It defaults to
@@ -97,28 +97,28 @@ HARD-LINKS controls how hard links are extracted from ARCHIVE. It defaults to
 + :DEREFERENCE : any hard link entries are instead written as normal files with
   the contents of the file they point to.
 + :SKIP : Skip the hard link.
-+ :ERROR : Signal a UNSUPPORTED-HARD-LINK-ENTRY-ERROR with the restarts
++ :ERROR : Signal a EXTRACT-HARD-LINK-ENTRY-ERROR with the restarts
   DEREFERENCE-LINK and SKIP-ENTRY active.
 
 CHARACTER-DEVICES controls how character devices are extracted from ARCHIVE. It
 defaults to :SKIP. The possible values are:
 
 + :SKIP : Skip the entry.
-+ :ERROR : Signal a UNSUPPORTED-CHARACTER-DEVICE-ENTRY-ERROR with the restart
++ :ERROR : Signal a EXTRACT-CHARACTER-DEVICE-ENTRY-ERROR with the restart
   SKIP-ENTRY active.
 
 BLOCK-DEVICES controls how block devices are extracted from ARCHIVE. It
 defaults to :SKIP. The possible values are:
 
 + :SKIP : Skip the entry.
-+ :ERROR : Signal a UNSUPPORTED-BLOCK-DEVICE-ENTRY-ERROR with the restart
++ :ERROR : Signal a EXTRACT-BLOCK-DEVICE-ENTRY-ERROR with the restart
   SKIP-ENTRY active.
 
 FIFOS controls how FIFOs are extracted from ARCHIVE. It defaults to :SKIP. The
 possible values are:
 
 + :SKIP : Skip the entry.
-+ :ERROR : Signal a UNSUPPORTED-FIFO-ENTRY-ERROR with the restart SKIP-ENTRY
++ :ERROR : Signal a EXTRACT-FIFO-ENTRY-ERROR with the restart SKIP-ENTRY
   active.
 
 The following option controls what entries are extracted.
@@ -153,25 +153,25 @@ the CONTINUE restart active."
                (:skip (skip-entry c))
                (:relativize (relativize-entry-name c)))))
 
-         (unsupported-symbolic-link-entry-error
+         (extract-symbolic-link-entry-error
            (lambda (c)
              (case symbolic-links
                (:skip (skip-entry c))
                (:dereference (dereference-link c)))))
-         (unsupported-hard-link-entry-error
+         (extract-hard-link-entry-error
            (lambda (c)
              (case hard-links
                (:skip (skip-entry c))
                (:dereference (dereference-link c)))))
-         (unsupported-fifo-entry-error
+         (extract-fifo-entry-error
            (lambda (c)
              (case fifos
                (:skip (skip-entry c)))))
-         (unsupported-block-device-entry-error
+         (extract-block-device-entry-error
            (lambda (c)
              (case block-devices
                (:skip (skip-entry c)))))
-         (unsupported-character-device-entry-error
+         (extract-character-device-entry-error
            (lambda (c)
              (case character-devices
                (:skip (skip-entry c))))))
@@ -236,24 +236,24 @@ the CONTINUE restart active."
 
 (defmethod simple-extract-entry :around ((entry tar:symbolic-link-entry) pn &key &allow-other-keys)
   (restart-case
-      (error 'unsupported-symbolic-link-entry-error :entry entry)
+      (error 'extract-symbolic-link-entry-error :entry entry)
     (dereference-link ()
       (push (list entry pn :symbolic) *deferred-links*))))
 
 (defmethod simple-extract-entry :around ((entry tar:hard-link-entry) pn &key &allow-other-keys)
   (restart-case
-      (error 'unsupported-hard-link-entry-error :entry entry)
+      (error 'extract-hard-link-entry-error :entry entry)
     (dereference-link ()
       (push (list entry pn :hard) *deferred-links*))))
 
 (defmethod simple-extract-entry :before ((entry tar:fifo-entry) pn &key &allow-other-keys)
-  (error 'unsupported-fifo-entry-error :entry entry))
+  (error 'extract-fifo-entry-error :entry entry))
 
 (defmethod simple-extract-entry :before ((entry tar:block-device-entry) pn &key &allow-other-keys)
-  (error 'unsupported-block-device-entry-error :entry entry))
+  (error 'extract-block-device-entry-error :entry entry))
 
 (defmethod simple-extract-entry :before ((entry tar:character-device-entry) pn &key &allow-other-keys)
-  (error 'unsupported-character-device-entry-error :entry entry))
+  (error 'extract-character-device-entry-error :entry entry))
 
 (defmethod simple-extract-entry ((entry tar:entry) pn &key)
   (declare (ignore pn))

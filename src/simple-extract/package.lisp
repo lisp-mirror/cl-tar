@@ -16,12 +16,12 @@
 
    #:entry-name-is-absolute-error
 
-   #:unsupported-entry-error
-   #:unsupported-character-device-entry-error
-   #:unsupported-block-device-entry-error
-   #:unsupported-fifo-entry-error
-   #:unsupported-symbolic-link-entry-error
-   #:unsupported-hard-link-entry-error
+   #:extract-entry-error
+   #:extract-character-device-entry-error
+   #:extract-block-device-entry-error
+   #:extract-fifo-entry-error
+   #:extract-symbolic-link-entry-error
+   #:extract-hard-link-entry-error
 
    #:broken-or-circular-links-error
 

@@ -206,7 +206,7 @@
       (para:fail
           (tar:with-open-archive (a pn)
             (tar-simple-extract:simple-extract-archive a :symbolic-links :error))
-          'tar-simple-extract:unsupported-symbolic-link-entry-error))
+          'tar-simple-extract:extract-symbolic-link-entry-error))
     (with-temp-dir ()
       (tar:with-open-archive (a pn)
         (tar-simple-extract:simple-extract-archive a :symbolic-links :skip))
@@ -251,7 +251,7 @@
       (para:fail
           (tar:with-open-archive (a pn)
             (tar-simple-extract:simple-extract-archive a :hard-links :error))
-          'tar-simple-extract:unsupported-hard-link-entry-error))
+          'tar-simple-extract:extract-hard-link-entry-error))
     (with-temp-dir ()
       (tar:with-open-archive (a pn)
         (tar-simple-extract:simple-extract-archive a :hard-links :skip))
@@ -284,7 +284,7 @@
       (para:fail
           (tar:with-open-archive (a pn)
             (tar-simple-extract:simple-extract-archive a :character-devices :error))
-          'tar-simple-extract:unsupported-character-device-entry-error))
+          'tar-simple-extract:extract-character-device-entry-error))
     (with-temp-dir ()
       (tar:with-open-archive (a pn)
         (tar-simple-extract:simple-extract-archive a :character-devices :skip))
@@ -311,7 +311,7 @@
       (para:fail
           (tar:with-open-archive (a pn)
             (tar-simple-extract:simple-extract-archive a :block-devices :error))
-          'tar-simple-extract:unsupported-block-device-entry-error))
+          'tar-simple-extract:extract-block-device-entry-error))
     (with-temp-dir ()
       (tar:with-open-archive (a pn)
         (tar-simple-extract:simple-extract-archive a :block-devices :skip))
@@ -336,7 +336,7 @@
       (para:fail
           (tar:with-open-archive (a pn)
             (tar-simple-extract:simple-extract-archive a :fifos :error))
-          'tar-simple-extract:unsupported-fifo-entry-error))
+          'tar-simple-extract:extract-fifo-entry-error))
     (with-temp-dir ()
       (tar:with-open-archive (a pn)
         (tar-simple-extract:simple-extract-archive a :fifos :skip))

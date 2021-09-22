@@ -394,7 +394,7 @@
       (para:fail
           (tar:with-open-archive (a pn)
             (tar-extract:extract-archive a :character-devices :error))
-          'tar-extract:unsupported-character-device-entry-error))
+          'tar-extract:extract-character-device-entry-error))
     (with-temp-dir ()
       (tar:with-open-archive (a pn)
         (tar-extract:extract-archive a :character-devices :skip))
@@ -421,7 +421,7 @@
       (para:fail
           (tar:with-open-archive (a pn)
             (tar-extract:extract-archive a :block-devices :error))
-          'tar-extract:unsupported-block-device-entry-error))
+          'tar-extract:extract-block-device-entry-error))
     (with-temp-dir ()
       (tar:with-open-archive (a pn)
         (tar-extract:extract-archive a :block-devices :skip))
@@ -446,7 +446,7 @@
       (para:fail
           (tar:with-open-archive (a pn)
             (tar-extract:extract-archive a :fifos :error))
-          'tar-extract:unsupported-fifo-entry-error))
+          'tar-extract:extract-fifo-entry-error))
     #-windows
     (with-temp-dir ()
       (tar:with-open-archive (a pn)

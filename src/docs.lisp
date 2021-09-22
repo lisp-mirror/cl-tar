@@ -39,12 +39,11 @@ SIMPLE-EXTRACT-ARCHIVE."
   (entry-name-contains-device-error 40ants-doc/locatives:class)
   (entry-name-contains-..-error 40ants-doc/locatives:class)
   (entry-name-is-absolute-error 40ants-doc/locatives:class)
-  (unsupported-entry-error 40ants-doc/locatives:class)
-  (unsupported-character-device-entry-error 40ants-doc/locatives:class)
-  (unsupported-block-device-entry-error 40ants-doc/locatives:class)
-  (unsupported-fifo-entry-error 40ants-doc/locatives:class)
-  (unsupported-symbolic-link-entry-error 40ants-doc/locatives:class)
-  (unsupported-hard-link-entry-error 40ants-doc/locatives:class)
+  (extract-character-device-entry-error 40ants-doc/locatives:class)
+  (extract-block-device-entry-error 40ants-doc/locatives:class)
+  (extract-fifo-entry-error 40ants-doc/locatives:class)
+  (extract-symbolic-link-entry-error 40ants-doc/locatives:class)
+  (extract-hard-link-entry-error 40ants-doc/locatives:class)
   (broken-or-circular-links-error 40ants-doc/locatives:class)
 
   (dereference-link 40ants-doc/locatives:function)
@@ -58,7 +57,44 @@ SIMPLE-EXTRACT-ARCHIVE."
      :package-symbol (find-package :tar-extract))
   "This section describes the support for non-portable extraction to the
 filesystem."
-  (extract-archive 40ants-doc/locatives:function))
+  (extract-archive 40ants-doc/locatives:function)
+  (@tar-extract-conditions 40ants-doc/locatives:section))
+
+(40ants-doc:defsection @tar-extract-conditions
+    (:title "Extraction Conditions"
+     :export nil
+     :package-symbol (find-package :tar-extract))
+  "This section describes the conditions that can occur during
+EXTRACT-ARCHIVE."
+  (extraction-error 40ants-doc/locatives:class)
+  (extraction-entry-error 40ants-doc/locatives:class)
+  (extraction-entry-error-entry (40ants-doc/locatives:reader extraction-entry-error))
+  (entry-name-contains-device-error 40ants-doc/locatives:class)
+  (entry-name-contains-..-error 40ants-doc/locatives:class)
+  (entry-name-is-absolute-error 40ants-doc/locatives:class)
+  (extract-character-device-entry-error 40ants-doc/locatives:class)
+  (extract-block-device-entry-error 40ants-doc/locatives:class)
+  (extract-fifo-entry-error 40ants-doc/locatives:class)
+  (extract-symbolic-link-entry-error 40ants-doc/locatives:class)
+  (extract-hard-link-entry-error 40ants-doc/locatives:class)
+  (broken-or-circular-links-error 40ants-doc/locatives:class)
+
+  (destination-exists-error 40ants-doc/locatives:class)
+  (extraction-through-symbolic-link-error 40ants-doc/locatives:class)
+  (file-exists-in-place-of-directory-error 40ants-doc/locatives:class)
+
+  (dereference-link 40ants-doc/locatives:function)
+  (skip-entry 40ants-doc/locatives:function)
+  (relativize-entry-name 40ants-doc/locatives:function)
+  (treat-..-as-back 40ants-doc/locatives:function)
+
+  (remove-file 40ants-doc/locatives:function)
+  (follow-symbolic-link 40ants-doc/locatives:function)
+  (replace-symbolic-link 40ants-doc/locatives:function)
+  (supersede-file 40ants-doc/locatives:function)
+  (extract-link 40ants-doc/locatives:function)
+  (extract-device 40ants-doc/locatives:function)
+  (extract-fifo 40ants-doc/locatives:function))
 
 (40ants-doc:defsection @tar
     (:title "Tar"

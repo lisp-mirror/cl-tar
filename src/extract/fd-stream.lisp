@@ -140,12 +140,12 @@ Returns an FD-STREAM or OUTPUT-FD-STREAM."
                      (go :retry)))))
               ((not (nix:s-isdir (nix:stat-mode stat)))
                (restart-case
-                   (error 'file-exists-in-place-of-directory
+                   (error 'file-exists-in-place-of-directory-error
                           :pathname (make-pathname :name nil
                                                    :type nil
                                                    :directory (reverse path-so-far)
                                                    :defaults pathname))
-                 (supersede-file ()
+                 (remove-file ()
                    (nix:unlinkat cwdfd next-dir-name 0)
                    (go :retry)))))
           :open
@@ -229,7 +229,7 @@ Returns an FD-STREAM or OUTPUT-FD-STREAM."
                ;; processes that already have the file open happier. Take the
                ;; same approach as replacing a symlink, make a new file and
                ;; rename it.
-               (rename-and-replace-file ()
+               (remove-file ()
                  (multiple-value-bind (stream tmp-name) (openat-random cwdfd name mode)
                    (nix:renameat cwdfd tmp-name cwdfd name)
                    (return-from openat stream))))))
@@ -273,7 +273,7 @@ Returns an FD-STREAM or OUTPUT-FD-STREAM."
          ;; processes that already have the file open happier. Take the
          ;; same approach as replacing a symlink, make a new file and
          ;; rename it.
-         (rename-and-replace-file ()
+         (remove-file ()
            (multiple-value-bind (stream tmp-name) (open-random pn mode)
              (nix:rename tmp-name (merge-pathnames pn))
              (return-from my-open stream))))
