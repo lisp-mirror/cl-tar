@@ -43,10 +43,10 @@
                           (list :relative)
                           (pathname-directory pn)))
            (num-components (+ (length (rest directory))
-                              (if (equal "" (file-namestring pn))
+                              (if (or (null (file-namestring pn))
+                                      (equal "" (file-namestring pn)))
                                   0
-                                  1)))
-           )
+                                  1))))
       (when (> num-components strip-components)
         (pathname-coalesce-backs
          (make-pathname :directory (list* (first directory)

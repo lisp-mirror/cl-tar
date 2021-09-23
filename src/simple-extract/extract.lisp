@@ -233,7 +233,7 @@ the CONTINUE restart active."
 
 (defgeneric simple-extract-entry (entry pn &key))
 
-(defmethod simple-extract-entry :before ((entry tar:entry) pn &key)
+(defmethod simple-extract-entry :before ((entry tar:entry) pn &key &allow-other-keys)
   (ensure-directories-exist (merge-pathnames pn)))
 
 (defmethod simple-extract-entry :around ((entry tar:symbolic-link-entry) pn &key &allow-other-keys)
@@ -257,7 +257,7 @@ the CONTINUE restart active."
 (defmethod simple-extract-entry :before ((entry tar:character-device-entry) pn &key &allow-other-keys)
   (error 'extract-character-device-entry-error :entry entry))
 
-(defmethod simple-extract-entry ((entry tar:entry) pn &key)
+(defmethod simple-extract-entry ((entry tar:entry) pn &key &allow-other-keys)
   (declare (ignore pn))
   t)
 
