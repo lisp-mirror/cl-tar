@@ -41,7 +41,7 @@
                                                        sequence start end
                                                        &key &allow-other-keys)
   (let ((num-bytes (- (or end (length sequence)) start)))
-    (cffi:with-foreign-array (buf (subseq sequence start end) `(:array :char ,num-bytes))
+    (cffi:with-foreign-array (buf (subseq sequence start end) `(:array :uchar ,num-bytes))
       (nix:write (fd stream) buf num-bytes)))
   sequence)
 
