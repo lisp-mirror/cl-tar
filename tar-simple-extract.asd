@@ -1,7 +1,7 @@
 ;;; -*- mode: lisp -*-
 
 (asdf:defsystem #:tar-simple-extract
-  :version "0.1.0"
+  :version "0.1.1"
   :author "Eric Timmons <eric@timmons.dev>"
   :description "A system to extract tar archives to the filesystem using only portable CL constructs."
   :license "MIT"
