@@ -4,6 +4,8 @@
   causes an error.
 + Fix bug where extracting files with non-ASCII characters would error. (I
   thought char was unsigned by default in C, but CFFI treats it as signed.
++ Fix bug reading archives with a PAX-GLOBAL-ATTRIBUTES-ENTRY. Currently, just
+  ignore it.
 
 ## v0.1.0 - September 22, 2021
 

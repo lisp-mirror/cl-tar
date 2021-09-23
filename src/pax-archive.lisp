@@ -21,6 +21,12 @@ USTAR-ARCHIVE header."))
 ;; Reading
 
 (defmethod convert-from-physical-entry ((archive pax-archive)
+                                        (physical-entry tar-file:pax-global-attributes-entry)
+                                        &rest overrides)
+  (apply #'convert-from-physical-entry archive (tar-file:read-entry (archive-file archive))
+         overrides))
+
+(defmethod convert-from-physical-entry ((archive pax-archive)
                                         (physical-entry tar-file:pax-extended-attributes-entry)
                                         &rest overrides)
   (let ((path (tar-file:attribute physical-entry "path"))
