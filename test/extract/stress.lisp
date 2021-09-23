@@ -73,6 +73,16 @@
   (uiop:with-temporary-file (:stream s :pathname pn :type "tar"
                              :element-type '(unsigned-byte 8))
     (tar:with-open-archive (a s :direction :output :type 'tar:pax-archive)
+      (tar:write-entry a (make-instance 'tar:directory-entry
+                                        :name "dir/"
+                                        :uname "root"
+                                        :gname "root"
+                                        :uid 0
+                                        :gid 0
+                                        :mode '(:user-read :user-write
+                                                :group-read
+                                                :other-read)
+                                        :mtime (local-time:unix-to-timestamp 2000 :nsec 15)))
       (tar:write-entry a (make-instance 'tar:file-entry
                                         :name "dir/a.txt"
                                         :size 14

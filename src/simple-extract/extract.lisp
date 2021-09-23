@@ -180,7 +180,8 @@ the CONTINUE restart active."
         (restart-case
             (let* ((*current-entry* entry)
                    (pn (compute-extraction-pathname entry (tar:name entry) strip-components)))
-              (when (funcall filter entry pn)
+              (when (and (not (null pn))
+                         (funcall filter entry pn))
                 (simple-extract-entry entry pn :if-exists if-exists
                                                :if-newer-exists if-newer-exists)))
           (skip-entry ())))

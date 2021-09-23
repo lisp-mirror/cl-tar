@@ -500,7 +500,8 @@ the CONTINUE restart active."
           (let ((*current-entry* entry))
             (restart-case
                 (let ((pn (compute-extraction-pathname entry (tar:name entry) strip-components)))
-                  (when (funcall filter entry pn)
+                  (when (and (not (null pn))
+                             (funcall filter entry pn))
                     (tar:with-ignored-unsupported-properties ()
                       (extract-entry entry pn
                                      :mask mask
