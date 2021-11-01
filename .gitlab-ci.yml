@@ -21,6 +21,7 @@ variables:
   # Neither of these have package local nickname support.
   CLCI_TEST_CLISP: "no"
   CLCI_TEST_CMUCL: "no"
+  CLCI_ABCL_TAG: "jdk8"
 
 # This section is not strictly required, but prevents Gitlab CI from launching
 # multiple redundent pipelines when a Merge Request is opened.
