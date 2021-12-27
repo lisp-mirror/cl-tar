@@ -10,6 +10,7 @@
 
 :sources
 (:implicit-file :type :file-system :system-files ("tar-docs.asd"))
+(:implicit-file :type :file-system :system-files ("tar-create.asd"))
 (:implicit-file :type :file-system :system-files ("tar-extract.asd"))
 (:implicit-file :type :file-system :system-files ("tar-simple-extract.asd"))
 (:implicit-file :type :file-system :system-files ("tar-common-extract.asd"))
@@ -27,6 +28,7 @@
 
 :requirements
 (:asd-file :name "tar-docs.asd")
+(:asd-file :name "tar-create.asd")
 (:asd-file :name "tar-extract.asd")
 (:asd-file :name "tar-simple-extract.asd")
 (:asd-file :name "tar-common-extract.asd")
@@ -164,6 +166,8 @@
  ("string-case"))
 ("tar-common-extract.asd" :version :newest :source :implicit-file :systems
  ("tar-common-extract"))
+("tar-create.asd" :version :newest :source :implicit-file :systems
+ ("tar-create" "tar-create/test"))
 ("tar-docs.asd" :version :newest :source :implicit-file :systems ("tar-docs"))
 ("tar-extract.asd" :version :newest :source :implicit-file :systems
  ("tar-extract" "tar-extract/test"))
@@ -423,6 +427,7 @@
 ("local-time"
  ((:system :name "tar-simple-extract") (:system :name "local-time"))
  ((:system :name "tar-extract") (:system :name "local-time"))
+ ((:system :name "tar-create") (:system :name "local-time"))
  ((:system :name "tar") (:system :name "local-time"))
  ((:system :name "common-doc") (:system :name "local-time"))
  ((:system :name "cl-cookie") (:system :name "local-time")))
@@ -439,12 +444,14 @@
  ((:system :name "40ants-doc") (:system :name "named-readtables")))
 
 ("osicat" ((:system :name "tar-simple-extract/test") (:system :name "osicat"))
- ((:system :name "tar-extract") (:system :name "osicat")))
+ ((:system :name "tar-extract") (:system :name "osicat"))
+ ((:system :name "tar-create/test") (:system :name "osicat")))
 
 ("parachute" ((:system :name "tar/test") (:system :name "parachute"))
  ((:system :name "tar-simple-extract/test") (:system :name "parachute"))
  ((:system :name "tar-file/test") (:system :name "parachute"))
- ((:system :name "tar-extract/test") (:system :name "parachute")))
+ ((:system :name "tar-extract/test") (:system :name "parachute"))
+ ((:system :name "tar-create/test") (:system :name "parachute")))
 
 ("parenscript" ((:system :name "spinneret") (:system :name "parenscript")))
 
@@ -502,6 +509,10 @@
  ((:system :name "tar-extract") (:system :name "tar-common-extract"))
  (t (:asd-file :name "tar-common-extract.asd")))
 
+("tar-create.asd"
+ ((:system :name "tar-create/test") (:system :name "tar-create"))
+ (t (:asd-file :name "tar-create.asd")))
+
 ("tar-docs.asd" (t (:asd-file :name "tar-docs.asd")))
 
 ("tar-extract.asd"
@@ -519,6 +530,7 @@
  ((:system :name "tar-simple-extract") (:system :name "tar"))
  ((:system :name "tar-extract") (:system :name "tar"))
  ((:system :name "tar-docs") (:system :name "tar"))
+ ((:system :name "tar-create") (:system :name "tar"))
  ((:system :name "tar-common-extract") (:system :name "tar"))
  (t (:asd-file :name "tar.asd")))
 
