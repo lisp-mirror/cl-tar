@@ -91,7 +91,7 @@
 ("cl-str" :version "2021-05-31" :source "quicklisp" :systems ("str"))
 ("cl-syntax" :version "2015-04-07" :source "quicklisp" :systems
  ("cl-syntax" "cl-syntax-annot"))
-("cl-tar-file" :version (:commit "da97461c0b58dfc83f742e0a4204623a5992bf16")
+("cl-tar-file" :version (:commit "67bb44b46643c618979881aea4dcaaa12e5e67c1")
  :source :implicit-vcs :systems ("tar-file" "tar-file/test"))
 ("cl-unicode" :version "2021-02-28" :source "quicklisp" :systems ("cl-unicode"))
 ("cl-utilities" :version "2010-10-07" :source "quicklisp" :systems
