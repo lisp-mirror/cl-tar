@@ -1,3 +1,8 @@
+## Unreleased
+
++ All slots on ENTRY now have a default value. Use NIL for "not provided"
+  instead of keeping the slot unbound.
+
 ## v0.1.1 - September 23, 2021
 
 + Fix bug where extracting an entry with fewer components than are stripped
