@@ -102,10 +102,12 @@
     :accessor gid)
    (uname
     :initarg :uname
+    :initform ""
     :type string
     :accessor uname)
    (gname
     :initarg :gname
+    :initform ""
     :type string
     :accessor gname)
    (mtime

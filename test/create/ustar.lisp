@@ -3,14 +3,14 @@
 (para:define-test create-ustar
   (with-temp-dir ()
     (nix:mkdir (merge-pathnames "test/") (logior nix:s-irwxu
-                                                 nix:s-irgrp nix:s-ixgrp
-                                                 nix:s-iroth nix:s-ixoth))
+                                                 #-windows nix:s-irgrp #-windows nix:s-ixgrp
+                                                 #-windows nix:s-iroth #-windows nix:s-ixoth))
     (with-open-file (s "test/a.txt" :direction :output)
       (write-string "Hello, world!
 "
                     s))
-    (nix:symlink "a.txt" (merge-pathnames "test/a-symlink.txt"))
-    (nix:link (merge-pathnames "test/a.txt") (merge-pathnames "test/a-hardlink.txt"))
+    (osicat:make-link "test/a-symlink.txt" :target "a.txt")
+    (osicat:make-link "test/a-hardlink.txt" :target "a.txt" :hard t)
 
     (uiop:with-temporary-file (:stream s :pathname pn :element-type '(unsigned-byte 8))
       (tar:with-open-archive (a s :direction :output :type :ustar)

@@ -15,6 +15,7 @@
 (:implicit-file :type :file-system :system-files ("tar-simple-extract.asd"))
 (:implicit-file :type :file-system :system-files ("tar-common-extract.asd"))
 (:implicit-file :type :file-system :system-files ("tar.asd"))
+(:implicit-vcs :type :vcs :projects (("osicat" :github :path "daewok/osicat")))
 (:implicit-vcs :type :vcs :projects
  (("cl-tar-file" :gitlab :host "gitlab.common-lisp.net" :path
    "cl-tar/cl-tar-file")))
@@ -33,6 +34,7 @@
 (:asd-file :name "tar-simple-extract.asd")
 (:asd-file :name "tar-common-extract.asd")
 (:asd-file :name "tar.asd")
+(:project :name "osicat" :branch "windows-improvements" :source :implicit-vcs)
 (:project :name "cl-tar-file" :branch "main" :source :implicit-vcs)
 (:system :name "flexi-streams")
 (:system :name "slynk")
@@ -136,7 +138,8 @@
 ("log4cl" :version "2021-10-21" :source "quicklisp" :systems ("log4cl"))
 ("named-readtables" :version "2021-05-31" :source "quicklisp" :systems
  ("named-readtables"))
-("osicat" :version "2021-10-21" :source "quicklisp" :systems ("osicat"))
+("osicat" :version (:commit "e932995dbb09757be3b7f41ac10dd39fd56ce75f") :source
+ :implicit-vcs :systems ("osicat" "osicat/tests"))
 ("parachute" :version "2021-10-21" :source "quicklisp" :systems ("parachute"))
 ("parenscript" :version "2018-12-10" :source "quicklisp" :systems
  ("parenscript"))
@@ -150,6 +153,7 @@
 ("pythonic-string-reader" :version "2018-07-11" :source "quicklisp" :systems
  ("pythonic-string-reader"))
 ("quri" :version "2021-06-30" :source "quicklisp" :systems ("quri"))
+("rt" :version "2010-10-07" :source "quicklisp" :systems ("rt"))
 ("salza2" :version "2021-10-21" :source "quicklisp" :systems ("salza2"))
 ("serapeum" :version "2021-10-21" :source "quicklisp" :systems ("serapeum"))
 ("slime" :version "2020-12-20" :source "quicklisp" :systems ("swank"))
@@ -285,7 +289,9 @@
 
 ("cffi" ((:system :name "static-vectors") (:system :name "cffi"))
  ((:system :name "static-vectors") (:system :name "cffi-grovel"))
+ ((:system :name "osicat/tests") (:system :name "cffi-grovel"))
  ((:system :name "osicat") (:system :name "cffi"))
+ ((:system :name "osicat") (:system :name "cffi-grovel"))
  ((:system :name "osicat") (:system :name "cffi-grovel"))
  ((:system :name "cl+ssl") (:system :name "cffi"))
  ((:system :name "cffi-toolchain") (:system :name "cffi"))
@@ -339,7 +345,9 @@
 
 ("cl-tar-file" ((:system :name "tar-file/test") (:system :name "tar-file"))
  ((:system :name "tar") (:system :name "tar-file"))
- (t (:project :name "cl-tar-file" :branch "main" :source :implicit-vcs)))
+ (t
+  (:project :name "cl-tar-file" :commit
+   "67bb44b46643c618979881aea4dcaaa12e5e67c1" :source :implicit-vcs)))
 
 ("cl-unicode" ((:system :name "cl-ppcre-unicode") (:system :name "cl-unicode")))
 
@@ -445,7 +453,12 @@
 
 ("osicat" ((:system :name "tar-simple-extract/test") (:system :name "osicat"))
  ((:system :name "tar-extract") (:system :name "osicat"))
- ((:system :name "tar-create/test") (:system :name "osicat")))
+ ((:system :name "tar-create/test") (:system :name "osicat"))
+ ((:system :name "tar-create") (:system :name "osicat"))
+ ((:system :name "osicat/tests") (:system :name "osicat"))
+ (t
+  (:project :name "osicat" :branch "windows-improvements" :source
+   :implicit-vcs)))
 
 ("parachute" ((:system :name "tar/test") (:system :name "parachute"))
  ((:system :name "tar-simple-extract/test") (:system :name "parachute"))
@@ -475,6 +488,8 @@
  ((:system :name "commondoc-markdown") (:system :name "quri"))
  ((:system :name "common-doc") (:system :name "quri"))
  ((:system :name "cl-cookie") (:system :name "quri")))
+
+("rt" ((:system :name "osicat/tests") (:system :name "rt")))
 
 ("salza2" ((:system :name "zip") (:system :name "salza2")))
 
@@ -554,6 +569,8 @@
 ("trivial-extract" (t (:system :name "trivial-extract")))
 
 ("trivial-features"
+ ((:system :name "osicat/tests") (:system :name "trivial-features"))
+ ((:system :name "osicat") (:system :name "trivial-features"))
  ((:system :name "osicat") (:system :name "trivial-features"))
  ((:system :name "dexador") (:system :name "trivial-features"))
  ((:system :name "cl+ssl") (:system :name "trivial-features"))

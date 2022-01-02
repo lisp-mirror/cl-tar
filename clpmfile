@@ -38,6 +38,10 @@
  :path "cl-tar/cl-tar-file"
  :branch "main")
 
+(:github "osicat"
+ :path "daewok/osicat"
+ :branch "windows-improvements")
+
 (:asd "tar.asd")
 (:asd "tar-common-extract.asd")
 (:asd "tar-simple-extract.asd")
