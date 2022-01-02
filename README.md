@@ -2,8 +2,8 @@ This project provides a high level interface for interacting with tar
 archives. It consists of several systems that provide different levels of
 functionality.
 
-**NOTE**: In order to load `tar-extract`, you need a version of osicat with
-commits from [this PR](https://github.com/osicat/osicat/pull/54).
+**NOTE**: In order to load `tar/create` on Windows you need a version of osicat
+with commits from [this PR](https://github.com/osicat/osicat/pull/57).
 
 ## Quickstart
 
@@ -11,7 +11,7 @@ If you want to extract a tar archive, without caring about preserving all the
 metadata, run the following:
 
 ```common-lisp
-(asdf:load-system :tar-simple-extract)
+(asdf:load-system "tar/simple-extract")
 
 (tar:with-open-archive (a "/path/to/file.tar")
   (tar-simple-extract:simple-extract-archive a :directory "/path/to/extraction/point/"))
@@ -21,13 +21,25 @@ If you want to extract a tar archive, attempting to preserve symbolic links and
 as much metadata as possible, evaluate the following:
 
 ```common-lisp
-(asdf:load-system :tar-extract)
+(asdf:load-system "tar/extract")
 
 (tar:with-open-archive (a "/path/to/file.tar")
   (tar-extract:extract-archive a :directory "/path/to/extraction/point/"))
 ```
 
-## tar
+If you want to create a tar archive, attempting to preserve symbolic links and
+as much metadata as possible, evaluate the following:
+
+```common-lisp
+(asdf:load-system "tar/create")
+
+(let ((*default-pathname-defaults* #p"/path/to/parent/"))
+  (tar:with-open-archive (a "/path/to/file.tar" :direction :output)
+    (tar-create:create-archive a '("directory/") :recursep t)))
+```
+
+## Systems
+### tar
 
 The `tar` system is a thin layer on top of
 the [`tar-file`](https://gitlab.common-lisp.net/cl-tar/cl-tar-file)
@@ -49,9 +61,9 @@ purpose is for the inspection of archives and creating archives whose content
 does not come directly from the file system. For file system integration, see
 the remaining systems.
 
-## tar-simple-extract
+### tar/simple-extract
 
-The `tar-simple-extract` system provides functionality to extract a tar archive
+The `tar/simple-extract` system provides functionality to extract a tar archive
 to your filesystem. Unfortunately, faithfully extracting tar files onto the
 filesystem is a complex task and is impossible to perform using only the
 functionality mandated by the Common Lisp specification.
@@ -77,9 +89,9 @@ extraction process should be fairly safe and predictable. Otherwise, you run
 the risk of existing symlinks being followed and overwriting arbitrary files on
 your machine.
 
-## tar-extract
+### tar/extract
 
-The `tar-extract` system attempts to provide full extraction functionality. As
+The `tar/extract` system attempts to provide full extraction functionality. As
 such, it is a much more complex beast and likely does not work on all
 implementation/OS combinations. Patches are always welcome to make it more
 portable.
@@ -119,3 +131,49 @@ normalizing), so we (currently) do not rely on caches to determine if a path is
 safe to write to. The result is that there are many syscalls that happen during
 extraction. There are probably ways this can be improved and patches are always
 welcome.
+
+### tar/create
+
+The `tar/create` system produces a tar file from your file system that
+faithfully reproduces all the metadata. It is a fairly complex beast and might
+not work on all implementation/OS combinations. Patches are always welcome to
+make it more portable.
+
+See the docstring for `tar-create:create-archive` to understand its options.
+
+## FAQ
+
+### Can I create/extract compressed tar files?
+
+Yes. However, support for this is not native at the moment. But I would welcome
+patches to change that.
+
+The easiest way to compress tar files is using
+the [`salza2`](https://xach.com/lisp/salza2/) system. It allows you to create a
+"compressing stream". The creation example from the quickstart, modified to
+compress with gzip is:
+
+```common-lisp
+(asdf:load-system "tar/create")
+(asdf:load-system "salza2")
+
+(let ((*default-pathname-defaults* #p"/path/to/parent/"))
+  (with-open-file (s "/path/to/file.tar.gz" :direction :output :element-type '(unsigned-byte 8))
+    (with-open-stream (compressing-stream (salza2:make-compressing-stream 'salza2:gzip-compressor s))
+      (tar:with-open-archive (a compressing-stream :direction :output)
+        (tar-create:create-archive a '("directory/") :recursep t)))))
+```
+
+The easiest way to decompress tar files is using
+the [`chipz`](https://github.com/sharplispers/chipz) system. The extraction
+example from the quickstart, modified to decompress with gzip is:
+
+```common-lisp
+(asdf:load-system "tar/extract")
+(asdf:load-system "chipz")
+
+(with-open-file (s "/path/to/file.tar.gz" :element-type '(unsigned-byte 8))
+  (with-open-stream (decompressing-stream (chipz:make-decompressing-stream 'chipz:gzip s))
+    (tar:with-open-archive (a decompressing-stream)
+      (tar-extract:extract-archive a :directory "/path/to/extraction/point/"))))
+```

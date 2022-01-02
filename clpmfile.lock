@@ -26,6 +26,8 @@
 (:asd-file :name "tar.asd")
 (:project :name "osicat" :branch "windows-improvements" :source :implicit-vcs)
 (:project :name "cl-tar-file" :branch "main" :source :implicit-vcs)
+(:system :name "chipz")
+(:system :name "salza2")
 (:system :name "flexi-streams")
 (:system :name "slynk")
 (:system :name "jonathan")
@@ -282,7 +284,8 @@
  ((:system :name "cffi-grovel") (:system :name "cffi"))
  ((:system :name "cffi-grovel") (:system :name "cffi-toolchain")))
 
-("chipz" ((:system :name "dexador") (:system :name "chipz")))
+("chipz" ((:system :name "dexador") (:system :name "chipz"))
+ (t (:system :name "chipz")))
 
 ("chunga" ((:system :name "dexador") (:system :name "chunga")))
 
@@ -476,7 +479,8 @@
 
 ("rt" ((:system :name "osicat/tests") (:system :name "rt")))
 
-("salza2" ((:system :name "zip") (:system :name "salza2")))
+("salza2" ((:system :name "zip") (:system :name "salza2"))
+ (t (:system :name "salza2")))
 
 ("serapeum" ((:system :name "spinneret") (:system :name "serapeum")))
 

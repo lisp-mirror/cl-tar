@@ -33,6 +33,10 @@
 ;; Needed to build cl-unicode
 (:system "flexi-streams")
 
+;; Useful for testing compression and decompression.
+(:system "salza2")
+(:system "chipz")
+
 (:gitlab "cl-tar-file"
  :host "gitlab.common-lisp.net"
  :path "cl-tar/cl-tar-file"
