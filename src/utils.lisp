@@ -43,6 +43,8 @@
                             (local-time:nsec-of timestamp))))
     (loop :while (eql (aref raw-string (1- (length raw-string))) #\0)
           :do (setf raw-string (subseq raw-string 0 (1- (length raw-string)))))
+    (when (eql (aref raw-string (1- (length raw-string))) #\.)
+      (setf raw-string (subseq raw-string 0 (1- (length raw-string)))))
     raw-string))
 
 (defun tar-file-entry-with-prefix-name (entry)
