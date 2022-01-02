@@ -13,11 +13,12 @@ V7-ARCHIVEs."))
 (defun split-name (name)
   (if (<= (length name) 100)
       (values nil name)
-      (let ((position (position #\/ (subseq name 0 (min (length name) 156))
-                                :from-end t)))
+      (let ((position (position #\/ name
+                                :from-end t
+                                :end (when (>= (length name) 156) 156))))
         (if (null position)
             (values nil name)
-            (values (subseq name 0 (1- position))
+            (values (subseq name 0 position)
                     (subseq name (1+ position)))))))
 
 (defmethod archive-supports-property-p ((archive ustar-archive) property)
