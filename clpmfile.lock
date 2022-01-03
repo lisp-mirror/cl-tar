@@ -74,7 +74,7 @@
 ("asdf-flv" :version "2016-04-21" :source "quicklisp" :systems
  ("net.didierverna.asdf-flv"))
 ("asdf-release-ops" :version
- (:commit "9e3944a0485649bad1bd9dbab817dda6894af6fa") :source :implicit-vcs
+ (:commit "69272dd9043850b10cad18157217e609ef39039f") :source :implicit-vcs
  :systems
  ("asdf-release-ops" "asdf-release-ops-test" "asdf-release-ops-test/lisp-curl"
   "asdf-release-ops/archive" "asdf-release-ops/cffi-toolchain"
