@@ -104,7 +104,10 @@ HEADER-ENCODING is an encoding specifier recognized by Babel."
                                (list :if-exists if-exists))
                              (when if-does-not-exist-supplied-p
                                (list :if-does-not-exist if-does-not-exist))))))
-         (tar-file-type (archive-type-to-tar-file-type type))
+         (tar-file-type (if (and (eql type :auto)
+                                 (eql direction :output))
+                            'tar-file:ustar-tar-file
+                            (archive-type-to-tar-file-type type)))
          (tar-file (tar-file:open-tar-file stream
                                            :type tar-file-type
                                            :direction direction

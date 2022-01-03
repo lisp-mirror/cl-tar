@@ -1,6 +1,6 @@
 (require "asdf")
 
-(asdf:load-system :tar-docs)
+(asdf:load-system :tar/docs)
 
 (asdf:load-system :40ants-doc-full)
 

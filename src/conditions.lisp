@@ -77,14 +77,17 @@ the underlying archive type."))
   "Truncate the value and write it to the archive."
   (invoke-restart (find-restart 'truncate-value condition)))
 
-(defun call-with-truncated-unsupported-values (thunk)
+(defun call-with-truncated-unsupported-values (thunk properties)
   (handler-bind
       ((unsupported-property-value (lambda (c)
-                                     (when (find-restart 'truncate-value c)
+                                     (when (and (find-restart 'truncate-value c)
+                                                (or (eql properties t)
+                                                    (member (unsupported-property-value-name c)
+                                                            properties)))
                                        (truncate-value c)))))
     (funcall thunk)))
 
-(defmacro with-truncated-unsupported-values (() &body body)
+(defmacro with-truncated-unsupported-values ((&key (properties t)) &body body)
   "Evaluate BODY in a context where truncatable values are automatically
 truncated."
-  `(call-with-truncated-unsupported-values (lambda () ,@body)))
+  `(call-with-truncated-unsupported-values (lambda () ,@body) ,properties))

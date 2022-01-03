@@ -42,7 +42,7 @@ generate docs:
     CLPM_SCRIPT: scripts/generate-docs.lisp
   artifacts:
     paths:
-      - doc/
+      - docs/
 
 publish docs:
   stage: deploy

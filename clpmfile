@@ -33,13 +33,17 @@
 ;; Needed to build cl-unicode
 (:system "flexi-streams")
 
+;; Useful for testing compression and decompression.
+(:system "salza2")
+(:system "chipz")
+
 (:gitlab "cl-tar-file"
  :host "gitlab.common-lisp.net"
  :path "cl-tar/cl-tar-file"
  :branch "main")
 
+(:github "osicat"
+ :path "daewok/osicat"
+ :branch "windows-improvements")
+
 (:asd "tar.asd")
-(:asd "tar-common-extract.asd")
-(:asd "tar-simple-extract.asd")
-(:asd "tar-extract.asd")
-(:asd "tar-docs.asd")

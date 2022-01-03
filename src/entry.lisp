@@ -102,11 +102,13 @@
     :accessor gid)
    (uname
     :initarg :uname
-    :type string
+    :initform nil
+    :type (or string null)
     :accessor uname)
    (gname
     :initarg :gname
-    :type string
+    :initform nil
+    :type (or string null)
     :accessor gname)
    (mtime
     :initarg :mtime
@@ -114,11 +116,13 @@
     :accessor mtime)
    (atime
     :initarg :atime
-    :type local-time:timestamp
+    :initform nil
+    :type (or local-time:timestamp null)
     :accessor atime)
    (ctime
     :initarg :ctime
-    :type local-time:timestamp
+    :initform nil
+    :type (or local-time:timestamp null)
     :accessor ctime))
   (:documentation
    "The base class of all entry types. Each ENTRY must contain a NAME, MODE,

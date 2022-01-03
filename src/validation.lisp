@@ -124,10 +124,12 @@
   (dolist (slot (entry-property-slot-names entry))
     (tagbody
        (when (and (slot-boundp entry slot)
+                  (not (null (slot-value entry slot)))
                   (not (archive-supports-property-p archive slot)))
          (restart-case
              (error 'unsupported-property :name slot)
            (ignore-unsupported-property ()
              (go :end))))
-       (check-property-for-writing archive entry slot)
+       (unless (null (slot-value entry slot))
+         (check-property-for-writing archive entry slot))
      :end)))
