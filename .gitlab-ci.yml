@@ -64,7 +64,7 @@ build release:
     CLCI_ASDF_VERSION: "3.3.4"
     CLPM_SCRIPT: scripts/build-release.lisp
   before_script:
-    - apk add curl ca-certificates git pkgconfig gcc musl-dev linux-headers zlib-dev zlib-static
+    - apk add curl ca-certificates git pkgconfig gcc musl-dev linux-headers zlib-dev zlib-static make
   artifacts:
     paths:
       - releases/
