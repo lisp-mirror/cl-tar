@@ -101,7 +101,7 @@
 ("cl-str" :version "2021-05-31" :source "quicklisp" :systems ("str"))
 ("cl-syntax" :version "2015-04-07" :source "quicklisp" :systems
  ("cl-syntax" "cl-syntax-annot"))
-("cl-tar-file" :version (:commit "29ec375c4bd911370467744cd702003fa848647b")
+("cl-tar-file" :version (:commit "02bdce6b1ace4093191854c539afbb4e5fd0ec96")
  :source :implicit-vcs :systems ("tar-file" "tar-file/test"))
 ("cl-unicode" :version "2021-02-28" :source "quicklisp" :systems ("cl-unicode"))
 ("cl-utilities" :version "2010-10-07" :source "quicklisp" :systems
@@ -299,8 +299,6 @@
 
 ("asdf-release-ops"
  ((:system :name "tar-cli-asdf") (:system :name "asdf-release-ops"))
- ((:system :name "tar-cli") (:system :name "asdf-release-ops"))
- ((:system :name "tar-cli") (:system :name "asdf-release-ops"))
  ((:system :name "asdf-release-ops/osicat") (:system :name "asdf-release-ops"))
  ((:system :name "asdf-release-ops/archive")
   (:system :name "asdf-release-ops"))
@@ -610,7 +608,9 @@
 
 ("string-case" ((:system :name "serapeum") (:system :name "string-case")))
 
-("tar-cli-asdf.asd" (t (:asd-file :name "tar-cli-asdf.asd")))
+("tar-cli-asdf.asd" ((:system :name "tar-cli") (:system :name "tar-cli-asdf"))
+ ((:system :name "tar-cli") (:system :name "tar-cli-asdf"))
+ (t (:asd-file :name "tar-cli-asdf.asd")))
 
 ("tar-cli.asd" (t (:asd-file :name "tar-cli.asd")))
 
