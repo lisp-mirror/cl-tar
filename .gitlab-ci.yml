@@ -61,7 +61,7 @@ build release:
     - .clci sbcl
     - .clci clpm script
   variables:
-    ASDF_VERSION: "3.3.4"
+    CLCI_ASDF_VERSION: "3.3.4"
     CLPM_SCRIPT: scripts/build-release.lisp
   artifacts:
     paths:
