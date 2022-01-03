@@ -85,7 +85,7 @@
 ("cl-str" :version "2021-05-31" :source "quicklisp" :systems ("str"))
 ("cl-syntax" :version "2015-04-07" :source "quicklisp" :systems
  ("cl-syntax" "cl-syntax-annot"))
-("cl-tar-file" :version (:commit "67bb44b46643c618979881aea4dcaaa12e5e67c1")
+("cl-tar-file" :version (:commit "5544c464d0e7e1bfcf65c094ca9df13fa2662860")
  :source :implicit-vcs :systems ("tar-file" "tar-file/test"))
 ("cl-unicode" :version "2021-02-28" :source "quicklisp" :systems ("cl-unicode"))
 ("cl-utilities" :version "2010-10-07" :source "quicklisp" :systems
@@ -521,6 +521,7 @@
  ((:system :name "tar/docs") (:system :name "tar"))
  ((:system :name "tar/docs") (:system :name "tar/simple-extract"))
  ((:system :name "tar/docs") (:system :name "tar/extract"))
+ ((:system :name "tar/docs") (:system :name "tar/create"))
  ((:system :name "tar/create-test") (:system :name "tar/create"))
  ((:system :name "tar/create") (:system :name "tar"))
  ((:system :name "tar/common-extract") (:system :name "tar"))
