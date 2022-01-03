@@ -1,4 +1,3 @@
-
 ;;; -*- mode: common-lisp -*-
 (:api-version "0.3")
 
@@ -44,6 +43,8 @@
 
 (:gitlab "asdf-release-ops"
  :path "daewok/asdf-release-ops"
- :branch "master")
+ :branch "main")
 
 (:asd "tar.asd")
+(:asd "tar-cli.asd")
+(:asd "tar-cli-asdf.asd")

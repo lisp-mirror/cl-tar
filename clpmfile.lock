@@ -9,6 +9,8 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 :sources
+(:implicit-file :type :file-system :system-files ("tar-cli-asdf.asd"))
+(:implicit-file :type :file-system :system-files ("tar-cli.asd"))
 (:implicit-file :type :file-system :system-files ("tar.asd"))
 (:implicit-vcs :type :vcs :projects
  (("asdf-release-ops" :gitlab :path "daewok/asdf-release-ops")))
@@ -25,8 +27,10 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 :requirements
+(:asd-file :name "tar-cli-asdf.asd")
+(:asd-file :name "tar-cli.asd")
 (:asd-file :name "tar.asd")
-(:project :name "asdf-release-ops" :branch "master" :source :implicit-vcs)
+(:project :name "asdf-release-ops" :branch "main" :source :implicit-vcs)
 (:project :name "osicat" :branch "windows-improvements" :source :implicit-vcs)
 (:project :name "cl-tar-file" :branch "main" :source :implicit-vcs)
 (:system :name "flexi-streams")
@@ -61,6 +65,7 @@
 ("3bmd" :version "2021-04-11" :source "quicklisp" :systems
  ("3bmd" "3bmd-ext-code-blocks"))
 ("3bz" :version "2020-12-20" :source "quicklisp" :systems ("3bz"))
+("adopt" :version "2021-05-31" :source "quicklisp" :systems ("adopt"))
 ("alexandria" :version "2021-08-07" :source "quicklisp" :systems ("alexandria"))
 ("anaphora" :version "2021-01-24" :source "quicklisp" :systems ("anaphora"))
 ("archive" :version "2016-03-18" :source "quicklisp" :systems ("archive"))
@@ -69,12 +74,13 @@
 ("asdf-flv" :version "2016-04-21" :source "quicklisp" :systems
  ("net.didierverna.asdf-flv"))
 ("asdf-release-ops" :version
- (:commit "8d2dffb4c82e6f31a049fe6e1fdea4d97dc617e8") :source :implicit-vcs
+ (:commit "9e3944a0485649bad1bd9dbab817dda6894af6fa") :source :implicit-vcs
  :systems
  ("asdf-release-ops" "asdf-release-ops-test" "asdf-release-ops-test/lisp-curl"
   "asdf-release-ops/archive" "asdf-release-ops/cffi-toolchain"
   "asdf-release-ops/lisp-invocation" "asdf-release-ops/osicat"))
 ("babel" :version "2020-09-25" :source "quicklisp" :systems ("babel"))
+("bobbin" :version "2020-10-16" :source "quicklisp" :systems ("bobbin"))
 ("bordeaux-threads" :version "2020-06-10" :source "quicklisp" :systems
  ("bordeaux-threads"))
 ("cffi" :version "2021-04-11" :source "quicklisp" :systems
@@ -95,7 +101,7 @@
 ("cl-str" :version "2021-05-31" :source "quicklisp" :systems ("str"))
 ("cl-syntax" :version "2015-04-07" :source "quicklisp" :systems
  ("cl-syntax" "cl-syntax-annot"))
-("cl-tar-file" :version (:commit "43cc3ef84fa24cdff07079940acad1344546fd1b")
+("cl-tar-file" :version (:commit "29ec375c4bd911370467744cd702003fa848647b")
  :source :implicit-vcs :systems ("tar-file" "tar-file/test"))
 ("cl-unicode" :version "2021-02-28" :source "quicklisp" :systems ("cl-unicode"))
 ("cl-utilities" :version "2010-10-07" :source "quicklisp" :systems
@@ -181,6 +187,9 @@
 ("stem" :version "2015-06-08" :source "quicklisp" :systems ("stem"))
 ("string-case" :version "2018-07-11" :source "quicklisp" :systems
  ("string-case"))
+("tar-cli-asdf.asd" :version :newest :source :implicit-file :systems
+ ("tar-cli-asdf"))
+("tar-cli.asd" :version :newest :source :implicit-file :systems ("tar-cli"))
 ("tar.asd" :version :newest :source :implicit-file :systems
  ("tar" "tar/common-extract" "tar/create" "tar/create-test" "tar/docs"
   "tar/extract" "tar/extract-test" "tar/simple-create" "tar/simple-create-test"
@@ -235,6 +244,8 @@
 
 ("3bz" ((:system :name "zippy") (:system :name "3bz")))
 
+("adopt" ((:system :name "tar-cli") (:system :name "adopt")))
+
 ("alexandria" ((:system :name "zippy") (:system :name "alexandria"))
  ((:system :name "type-i") (:system :name "alexandria"))
  ((:system :name "trivial-with-current-source-form")
@@ -287,6 +298,9 @@
  ((:system :name "fiveam") (:system :name "net.didierverna.asdf-flv")))
 
 ("asdf-release-ops"
+ ((:system :name "tar-cli-asdf") (:system :name "asdf-release-ops"))
+ ((:system :name "tar-cli") (:system :name "asdf-release-ops"))
+ ((:system :name "tar-cli") (:system :name "asdf-release-ops"))
  ((:system :name "asdf-release-ops/osicat") (:system :name "asdf-release-ops"))
  ((:system :name "asdf-release-ops/archive")
   (:system :name "asdf-release-ops"))
@@ -296,9 +310,7 @@
   (:system :name "asdf-release-ops"))
  ((:system :name "asdf-release-ops-test") (:system :name "asdf-release-ops"))
  ((:system :name "asdf-release-ops-test") (:system :name "asdf-release-ops"))
- (t
-  (:project :name "asdf-release-ops" :commit
-   "8d2dffb4c82e6f31a049fe6e1fdea4d97dc617e8" :source :implicit-vcs)))
+ (t (:project :name "asdf-release-ops" :branch "main" :source :implicit-vcs)))
 
 ("babel" ((:system :name "zippy") (:system :name "babel"))
  ((:system :name "zip") (:system :name "babel"))
@@ -313,6 +325,8 @@
  ((:system :name "commondoc-markdown") (:system :name "babel"))
  ((:system :name "cffi") (:system :name "babel"))
  ((:system :name "3bz") (:system :name "babel")))
+
+("bobbin" ((:system :name "adopt") (:system :name "bobbin")))
 
 ("bordeaux-threads"
  ((:system :name "serapeum") (:system :name "bordeaux-threads"))
@@ -585,6 +599,8 @@
  ((:system :name "quri") (:system :name "split-sequence"))
  ((:system :name "path-parse") (:system :name "split-sequence"))
  ((:system :name "colorize") (:system :name "split-sequence"))
+ ((:system :name "bobbin") (:system :name "split-sequence"))
+ ((:system :name "adopt") (:system :name "split-sequence"))
  ((:system :name "3bmd-ext-code-blocks") (:system :name "split-sequence"))
  ((:system :name "3bmd") (:system :name "split-sequence")))
 
@@ -593,6 +609,10 @@
 ("stem" (t (:system :name "stem")))
 
 ("string-case" ((:system :name "serapeum") (:system :name "string-case")))
+
+("tar-cli-asdf.asd" (t (:asd-file :name "tar-cli-asdf.asd")))
+
+("tar-cli.asd" (t (:asd-file :name "tar-cli.asd")))
 
 ("tar.asd" ((:system :name "tar/test") (:system :name "tar"))
  ((:system :name "tar/simple-extract-test")
@@ -611,6 +631,9 @@
  ((:system :name "tar/create-test") (:system :name "tar/create"))
  ((:system :name "tar/create") (:system :name "tar"))
  ((:system :name "tar/common-extract") (:system :name "tar"))
+ ((:system :name "tar-cli") (:system :name "tar"))
+ ((:system :name "tar-cli") (:system :name "tar/create"))
+ ((:system :name "tar-cli") (:system :name "tar/extract"))
  (t (:asd-file :name "tar.asd")))
 
 ("tmpdir" (t (:system :name "tmpdir")))
