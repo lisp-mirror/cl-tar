@@ -5,6 +5,7 @@
 (uiop:define-package #:tar-docs
     (:use #:cl
           #:tar
+          #:tar-create
           #:tar-extract
           #:tar-simple-extract))
 
@@ -17,7 +18,8 @@
   #.(uiop:read-file-string (asdf:system-relative-pathname :tar "README.md"))
   (@tar 40ants-doc/locatives:section)
   (@tar-simple-extract 40ants-doc/locatives:section)
-  (@tar-extract 40ants-doc/locatives:section))
+  (@tar-extract 40ants-doc/locatives:section)
+  (@tar-create 40ants-doc/locatives:section))
 
 (40ants-doc:defsection @tar-simple-extract
     (:title "Simple Extraction"
@@ -95,6 +97,14 @@ EXTRACT-ARCHIVE."
   (extract-link 40ants-doc/locatives:function)
   (extract-device 40ants-doc/locatives:function)
   (extract-fifo 40ants-doc/locatives:function))
+
+(40ants-doc:defsection @tar-create
+    (:title "Create"
+     :export nil
+     :package-symbol (find-package :tar-create))
+  "This section describes the support for non-portable creation of archives
+from the filesystem."
+  (create-archive 40ants-doc/locatives:function))
 
 (40ants-doc:defsection @tar
     (:title "Tar"

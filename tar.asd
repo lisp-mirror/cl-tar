@@ -59,7 +59,7 @@
   :author "Eric Timmons <eric@timmons.dev>"
   :description "Documentation system for tar."
   :license "MIT"
-  :depends-on ("tar" "40ants-doc" "tar/simple-extract" "tar/extract")
+  :depends-on ("tar" "40ants-doc" "tar/simple-extract" "tar/extract" "tar/create")
   :pathname "src/"
   :components ((:file "docs")))
 
