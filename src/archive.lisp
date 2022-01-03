@@ -79,6 +79,7 @@
                        (if-exists nil if-exists-supplied-p)
                        (if-does-not-exist nil if-does-not-exist-supplied-p)
                        (blocking-factor 20)
+                       (compression :auto)
                        (header-encoding tar-file:*default-header-encoding*))
   "Create a tar archive object backed by STREAM-OR-PATH. If a stream, it should
 not be read from or written to any more.
@@ -91,7 +92,12 @@ read from or written to STREAM at any one time.
 TYPE is either AUTO or a class designator for a subclass of ARCHIVE. If :AUTO,
 the appropriate class will be determined by looking at the first tar header.
 
-HEADER-ENCODING is an encoding specifier recognized by Babel."
+HEADER-ENCODING is an encoding specifier recognized by Babel.
+
+COMPRESSION determines what compression scheme is used, if any. It can be
+either :AUTO (the default), NIL (no compression), or :GZIP. If :AUTO, the
+compression type is determined using the PATHNAME of the stream (for :OUTPUT)
+or by peeking at the stream for magic numbers (for :INPUT)."
   (assert (member direction '(:input :output)))
   (let* ((stream (if (streamp stream-or-path)
                      stream-or-path
@@ -112,7 +118,8 @@ HEADER-ENCODING is an encoding specifier recognized by Babel."
                                            :type tar-file-type
                                            :direction direction
                                            :blocking-factor blocking-factor
-                                           :header-encoding header-encoding))
+                                           :header-encoding header-encoding
+                                           :compression compression))
          (archive-type (if (keywordp type)
                            (tar-file-to-archive-type tar-file)
                            type)))
@@ -138,8 +145,10 @@ remains open."))
                                &key
                                  type direction
                                  if-exists if-does-not-exist
-                                 blocking-factor header-encoding)
-  (declare (ignore type direction if-exists if-does-not-exist blocking-factor header-encoding))
+                                 blocking-factor header-encoding
+                                 compression)
+  (declare (ignore type direction if-exists if-does-not-exist blocking-factor header-encoding
+                   compression))
   (let ((archive (apply #'open-archive stream-or-path args)))
     (unwind-protect (funcall thunk archive)
       (close-archive archive))))
@@ -149,13 +158,15 @@ remains open."))
                               &key
                                 type direction
                                 if-exists if-does-not-exist
-                                blocking-factor header-encoding)
+                                blocking-factor header-encoding
+                                compression)
                              &body body)
   "Evaluate BODY with ARCHIVE-VAR bound to an instance of ARCHIVE. See
 OPEN-ARCHIVE for more discussion of the arguments. If STREAM-OR-PATH is a path,
 the underlying stream is closed upon exiting the macro. If it is a stream, it
 remains open."
-  (declare (ignore type direction if-exists if-does-not-exist blocking-factor header-encoding))
+  (declare (ignore type direction if-exists if-does-not-exist blocking-factor header-encoding
+                   compression))
   `(call-with-open-archive
     (lambda (,archive-var) ,@body)
     ,stream-or-path

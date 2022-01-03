@@ -10,6 +10,8 @@
 
 :sources
 (:implicit-file :type :file-system :system-files ("tar.asd"))
+(:implicit-vcs :type :vcs :projects
+ (("asdf-release-ops" :gitlab :path "daewok/asdf-release-ops")))
 (:implicit-vcs :type :vcs :projects (("osicat" :github :path "daewok/osicat")))
 (:implicit-vcs :type :vcs :projects
  (("cl-tar-file" :gitlab :host "gitlab.common-lisp.net" :path
@@ -24,10 +26,9 @@
 
 :requirements
 (:asd-file :name "tar.asd")
+(:project :name "asdf-release-ops" :branch "master" :source :implicit-vcs)
 (:project :name "osicat" :branch "windows-improvements" :source :implicit-vcs)
 (:project :name "cl-tar-file" :branch "main" :source :implicit-vcs)
-(:system :name "chipz")
-(:system :name "salza2")
 (:system :name "flexi-streams")
 (:system :name "slynk")
 (:system :name "jonathan")
@@ -59,11 +60,20 @@
 :releases
 ("3bmd" :version "2021-04-11" :source "quicklisp" :systems
  ("3bmd" "3bmd-ext-code-blocks"))
+("3bz" :version "2020-12-20" :source "quicklisp" :systems ("3bz"))
 ("alexandria" :version "2021-08-07" :source "quicklisp" :systems ("alexandria"))
 ("anaphora" :version "2021-01-24" :source "quicklisp" :systems ("anaphora"))
 ("archive" :version "2016-03-18" :source "quicklisp" :systems ("archive"))
 ("array-utils" :version "2020-12-20" :source "quicklisp" :systems
  ("array-utils"))
+("asdf-flv" :version "2016-04-21" :source "quicklisp" :systems
+ ("net.didierverna.asdf-flv"))
+("asdf-release-ops" :version
+ (:commit "8d2dffb4c82e6f31a049fe6e1fdea4d97dc617e8") :source :implicit-vcs
+ :systems
+ ("asdf-release-ops" "asdf-release-ops-test" "asdf-release-ops-test/lisp-curl"
+  "asdf-release-ops/archive" "asdf-release-ops/cffi-toolchain"
+  "asdf-release-ops/lisp-invocation" "asdf-release-ops/osicat"))
 ("babel" :version "2020-09-25" :source "quicklisp" :systems ("babel"))
 ("bordeaux-threads" :version "2020-06-10" :source "quicklisp" :systems
  ("bordeaux-threads"))
@@ -85,7 +95,7 @@
 ("cl-str" :version "2021-05-31" :source "quicklisp" :systems ("str"))
 ("cl-syntax" :version "2015-04-07" :source "quicklisp" :systems
  ("cl-syntax" "cl-syntax-annot"))
-("cl-tar-file" :version (:commit "5544c464d0e7e1bfcf65c094ca9df13fa2662860")
+("cl-tar-file" :version (:commit "8ef7bf29a4338a81217a69314063ce68acf1a24a")
  :source :implicit-vcs :systems ("tar-file" "tar-file/test"))
 ("cl-unicode" :version "2021-02-28" :source "quicklisp" :systems ("cl-unicode"))
 ("cl-utilities" :version "2010-10-07" :source "quicklisp" :systems
@@ -103,6 +113,7 @@
  ("40ants-doc" "40ants-doc-full"))
 ("documentation-utils" :version "2019-07-11" :source "quicklisp" :systems
  ("documentation-utils"))
+("drakma" :version "2021-08-07" :source "quicklisp" :systems ("drakma"))
 ("esrap" :version "2021-10-21" :source "quicklisp" :systems ("esrap"))
 ("fare-quasiquote" :version "2020-09-25" :source "quicklisp" :systems
  ("fare-quasiquote" "fare-quasiquote-extras" "fare-quasiquote-optima"
@@ -110,6 +121,9 @@
 ("fare-utils" :version "2017-01-24" :source "quicklisp" :systems ("fare-utils"))
 ("fast-http" :version "2019-10-07" :source "quicklisp" :systems ("fast-http"))
 ("fast-io" :version "2020-09-25" :source "quicklisp" :systems ("fast-io"))
+("file-attributes" :version "2021-08-07" :source "quicklisp" :systems
+ ("file-attributes"))
+("fiveam" :version "2020-09-25" :source "quicklisp" :systems ("fiveam"))
 ("flexi-streams" :version "2021-08-07" :source "quicklisp" :systems
  ("flexi-streams"))
 ("form-fiddle" :version "2019-07-11" :source "quicklisp" :systems
@@ -124,12 +138,16 @@
 ("iterate" :version "2021-05-31" :source "quicklisp" :systems ("iterate"))
 ("jonathan" :version "2020-09-25" :source "quicklisp" :systems ("jonathan"))
 ("lass" :version "2021-10-21" :source "quicklisp" :systems ("lass"))
+("lisp-invocation" :version "2018-02-28" :source "quicklisp" :systems
+ ("lisp-invocation"))
 ("lisp-namespace" :version "2021-10-21" :source "quicklisp" :systems
  ("lisp-namespace"))
 ("local-time" :version "2021-01-24" :source "quicklisp" :systems ("local-time"))
 ("log4cl" :version "2021-10-21" :source "quicklisp" :systems ("log4cl"))
+("mmap" :version "2020-12-20" :source "quicklisp" :systems ("mmap"))
 ("named-readtables" :version "2021-05-31" :source "quicklisp" :systems
  ("named-readtables"))
+("nibbles" :version "2021-05-31" :source "quicklisp" :systems ("nibbles"))
 ("osicat" :version (:commit "6ac0e04bd4f5e1d54c31890b5d94972be01857f4") :source
  :implicit-vcs :systems ("osicat" "osicat/tests"))
 ("parachute" :version "2021-10-21" :source "quicklisp" :systems ("parachute"))
@@ -140,8 +158,11 @@
 ("parse-number" :version "2018-02-28" :source "quicklisp" :systems
  ("parse-number"))
 ("path-parse" :version "2016-04-21" :source "quicklisp" :systems ("path-parse"))
+("pathname-utils" :version "2021-05-31" :source "quicklisp" :systems
+ ("pathname-utils"))
 ("plump" :version "2021-06-30" :source "quicklisp" :systems ("plump"))
 ("proc-parse" :version "2019-08-13" :source "quicklisp" :systems ("proc-parse"))
+("puri" :version "2020-10-16" :source "quicklisp" :systems ("puri"))
 ("pythonic-string-reader" :version "2018-07-11" :source "quicklisp" :systems
  ("pythonic-string-reader"))
 ("quri" :version "2021-06-30" :source "quicklisp" :systems ("quri"))
@@ -168,6 +189,8 @@
 ("trivia" :version "2021-10-21" :source "quicklisp" :systems
  ("trivia" "trivia.balland2006" "trivia.level0" "trivia.level1" "trivia.level2"
   "trivia.quasiquote" "trivia.trivial"))
+("trivial-backtrace" :version "2020-06-10" :source "quicklisp" :systems
+ ("trivial-backtrace"))
 ("trivial-cltl2" :version "2020-03-25" :source "quicklisp" :systems
  ("trivial-cltl2"))
 ("trivial-extract" :version "2016-04-21" :source "quicklisp" :systems
@@ -197,6 +220,7 @@
  ("xml-emitter"))
 ("xsubseq" :version "2017-08-30" :source "quicklisp" :systems ("xsubseq"))
 ("zip" :version "2015-06-08" :source "quicklisp" :systems ("zip"))
+("zippy" :version "2021-10-21" :source "quicklisp" :systems ("zippy"))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -209,7 +233,10 @@
  ((:system :name "3bmd-ext-code-blocks") (:system :name "3bmd"))
  (t (:system :name "3bmd-ext-code-blocks")) (t (:system :name "3bmd")))
 
-("alexandria" ((:system :name "type-i") (:system :name "alexandria"))
+("3bz" ((:system :name "zippy") (:system :name "3bz")))
+
+("alexandria" ((:system :name "zippy") (:system :name "alexandria"))
+ ((:system :name "type-i") (:system :name "alexandria"))
  ((:system :name "trivial-with-current-source-form")
   (:system :name "alexandria"))
  ((:system :name "trivial-extract") (:system :name "alexandria"))
@@ -225,6 +252,7 @@
  ((:system :name "proc-parse") (:system :name "alexandria"))
  ((:system :name "osicat") (:system :name "alexandria"))
  ((:system :name "lisp-namespace") (:system :name "alexandria"))
+ ((:system :name "fiveam") (:system :name "alexandria"))
  ((:system :name "fast-io") (:system :name "alexandria"))
  ((:system :name "fast-http") (:system :name "alexandria"))
  ((:system :name "esrap") (:system :name "alexandria"))
@@ -242,6 +270,7 @@
  ((:system :name "cffi") (:system :name "alexandria"))
  ((:system :name "bordeaux-threads") (:system :name "alexandria"))
  ((:system :name "babel") (:system :name "alexandria"))
+ ((:system :name "3bz") (:system :name "alexandria"))
  ((:system :name "3bmd-ext-code-blocks") (:system :name "alexandria"))
  ((:system :name "3bmd") (:system :name "alexandria")))
 
@@ -249,11 +278,30 @@
  ((:system :name "common-html") (:system :name "anaphora"))
  ((:system :name "common-doc") (:system :name "anaphora")))
 
-("archive" ((:system :name "trivial-extract") (:system :name "archive")))
+("archive" ((:system :name "trivial-extract") (:system :name "archive"))
+ ((:system :name "asdf-release-ops/archive") (:system :name "archive")))
 
 ("array-utils" ((:system :name "plump") (:system :name "array-utils")))
 
-("babel" ((:system :name "zip") (:system :name "babel"))
+("asdf-flv"
+ ((:system :name "fiveam") (:system :name "net.didierverna.asdf-flv")))
+
+("asdf-release-ops"
+ ((:system :name "asdf-release-ops/osicat") (:system :name "asdf-release-ops"))
+ ((:system :name "asdf-release-ops/archive")
+  (:system :name "asdf-release-ops"))
+ ((:system :name "asdf-release-ops-test/lisp-curl")
+  (:system :name "asdf-release-ops"))
+ ((:system :name "asdf-release-ops-test/lisp-curl")
+  (:system :name "asdf-release-ops"))
+ ((:system :name "asdf-release-ops-test") (:system :name "asdf-release-ops"))
+ ((:system :name "asdf-release-ops-test") (:system :name "asdf-release-ops"))
+ (t
+  (:project :name "asdf-release-ops" :commit
+   "8d2dffb4c82e6f31a049fe6e1fdea4d97dc617e8" :source :implicit-vcs)))
+
+("babel" ((:system :name "zippy") (:system :name "babel"))
+ ((:system :name "zip") (:system :name "babel"))
  ((:system :name "tar-file") (:system :name "babel"))
  ((:system :name "tar") (:system :name "babel"))
  ((:system :name "serapeum") (:system :name "babel"))
@@ -263,7 +311,8 @@
  ((:system :name "fast-http") (:system :name "babel"))
  ((:system :name "dexador") (:system :name "babel"))
  ((:system :name "commondoc-markdown") (:system :name "babel"))
- ((:system :name "cffi") (:system :name "babel")))
+ ((:system :name "cffi") (:system :name "babel"))
+ ((:system :name "3bz") (:system :name "babel")))
 
 ("bordeaux-threads"
  ((:system :name "serapeum") (:system :name "bordeaux-threads"))
@@ -279,22 +328,31 @@
  ((:system :name "osicat") (:system :name "cffi"))
  ((:system :name "osicat") (:system :name "cffi-grovel"))
  ((:system :name "osicat") (:system :name "cffi-grovel"))
+ ((:system :name "mmap") (:system :name "cffi"))
+ ((:system :name "file-attributes") (:system :name "cffi"))
  ((:system :name "cl+ssl") (:system :name "cffi"))
  ((:system :name "cffi-toolchain") (:system :name "cffi"))
  ((:system :name "cffi-grovel") (:system :name "cffi"))
- ((:system :name "cffi-grovel") (:system :name "cffi-toolchain")))
+ ((:system :name "cffi-grovel") (:system :name "cffi-toolchain"))
+ ((:system :name "asdf-release-ops/cffi-toolchain")
+  (:system :name "cffi-toolchain"))
+ ((:system :name "3bz") (:system :name "cffi")))
 
-("chipz" ((:system :name "dexador") (:system :name "chipz"))
- (t (:system :name "chipz")))
+("chipz" ((:system :name "tar-file") (:system :name "chipz"))
+ ((:system :name "drakma") (:system :name "chipz"))
+ ((:system :name "dexador") (:system :name "chipz")))
 
-("chunga" ((:system :name "dexador") (:system :name "chunga")))
+("chunga" ((:system :name "drakma") (:system :name "chunga"))
+ ((:system :name "dexador") (:system :name "chunga")))
 
-("cl+ssl" ((:system :name "dexador") (:system :name "cl+ssl")))
+("cl+ssl" ((:system :name "drakma") (:system :name "cl+ssl"))
+ ((:system :name "dexador") (:system :name "cl+ssl")))
 
 ("cl-annot" ((:system :name "jonathan") (:system :name "cl-annot"))
  ((:system :name "cl-syntax-annot") (:system :name "cl-annot")))
 
 ("cl-base64" ((:system :name "lass") (:system :name "cl-base64"))
+ ((:system :name "drakma") (:system :name "cl-base64"))
  ((:system :name "dexador") (:system :name "cl-base64")))
 
 ("cl-change-case" ((:system :name "str") (:system :name "cl-change-case")))
@@ -313,6 +371,7 @@
  ((:system :name "spinneret") (:system :name "cl-ppcre"))
  ((:system :name "parenscript") (:system :name "cl-ppcre"))
  ((:system :name "jonathan") (:system :name "cl-ppcre"))
+ ((:system :name "drakma") (:system :name "cl-ppcre"))
  ((:system :name "dexador") (:system :name "cl-ppcre"))
  ((:system :name "cl-unicode") (:system :name "cl-ppcre"))
  ((:system :name "cl-ppcre-unicode") (:system :name "cl-ppcre"))
@@ -331,7 +390,7 @@
  ((:system :name "cl-syntax-annot") (:system :name "cl-syntax")))
 
 ("cl-tar-file" ((:system :name "tar-file/test") (:system :name "tar-file"))
- ((:system :name "tar") (:system :name "tar-file"))
+ ((:system :name "tar") (:system :name "tar-file" :version ((>= "0.2.0"))))
  (t (:project :name "cl-tar-file" :branch "main" :source :implicit-vcs)))
 
 ("cl-unicode" ((:system :name "cl-ppcre-unicode") (:system :name "cl-unicode")))
@@ -365,9 +424,15 @@
  (t (:system :name "40ants-doc-full")))
 
 ("documentation-utils"
+ ((:system :name "zippy") (:system :name "documentation-utils"))
  ((:system :name "plump") (:system :name "documentation-utils"))
  ((:system :name "parachute") (:system :name "documentation-utils"))
- ((:system :name "form-fiddle") (:system :name "documentation-utils")))
+ ((:system :name "mmap") (:system :name "documentation-utils"))
+ ((:system :name "form-fiddle") (:system :name "documentation-utils"))
+ ((:system :name "file-attributes") (:system :name "documentation-utils")))
+
+("drakma"
+ ((:system :name "asdf-release-ops-test/lisp-curl") (:system :name "drakma")))
 
 ("esrap" ((:system :name "3bmd") (:system :name "esrap")))
 
@@ -389,8 +454,13 @@
 ("fast-io" ((:system :name "jonathan") (:system :name "fast-io"))
  ((:system :name "dexador") (:system :name "fast-io")))
 
-("flexi-streams"
+("file-attributes" ((:system :name "zippy") (:system :name "file-attributes")))
+
+("fiveam" ((:system :name "asdf-release-ops-test") (:system :name "fiveam")))
+
+("flexi-streams" ((:system :name "tar-file") (:system :name "flexi-streams"))
  ((:system :name "smart-buffer") (:system :name "flexi-streams"))
+ ((:system :name "drakma") (:system :name "flexi-streams"))
  ((:system :name "cl+ssl") (:system :name "flexi-streams"))
  (t (:system :name "flexi-streams")))
 
@@ -414,6 +484,10 @@
 
 ("lass" (t (:system :name "lass")))
 
+("lisp-invocation"
+ ((:system :name "asdf-release-ops/lisp-invocation")
+  (:system :name "lisp-invocation")))
+
 ("lisp-namespace" ((:system :name "type-i") (:system :name "lisp-namespace"))
  ((:system :name "trivia.level2") (:system :name "lisp-namespace")))
 
@@ -428,6 +502,8 @@
 
 ("log4cl" (t (:system :name "log4cl")))
 
+("mmap" ((:system :name "3bz") (:system :name "mmap")))
+
 ("named-readtables"
  ((:system :name "serapeum") (:system :name "named-readtables"))
  ((:system :name "pythonic-string-reader") (:system :name "named-readtables"))
@@ -437,12 +513,16 @@
  ((:system :name "cl-syntax") (:system :name "named-readtables"))
  ((:system :name "40ants-doc") (:system :name "named-readtables")))
 
+("nibbles" ((:system :name "zippy") (:system :name "nibbles"))
+ ((:system :name "3bz") (:system :name "nibbles")))
+
 ("osicat" ((:system :name "tar/simple-extract-test") (:system :name "osicat"))
  ((:system :name "tar/simple-create-test") (:system :name "osicat"))
  ((:system :name "tar/extract") (:system :name "osicat"))
  ((:system :name "tar/create-test") (:system :name "osicat"))
  ((:system :name "tar/create") (:system :name "osicat"))
  ((:system :name "osicat/tests") (:system :name "osicat"))
+ ((:system :name "asdf-release-ops/osicat") (:system :name "osicat"))
  (t
   (:project :name "osicat" :branch "windows-improvements" :source
    :implicit-vcs)))
@@ -463,11 +543,15 @@
 
 ("path-parse" ((:system :name "which") (:system :name "path-parse")))
 
+("pathname-utils" ((:system :name "zippy") (:system :name "pathname-utils")))
+
 ("plump" ((:system :name "common-html") (:system :name "plump")))
 
 ("proc-parse" ((:system :name "jonathan") (:system :name "proc-parse"))
  ((:system :name "fast-http") (:system :name "proc-parse"))
  ((:system :name "cl-cookie") (:system :name "proc-parse")))
+
+("puri" ((:system :name "drakma") (:system :name "puri")))
 
 ("pythonic-string-reader"
  ((:system :name "40ants-doc") (:system :name "pythonic-string-reader")))
@@ -479,8 +563,10 @@
 
 ("rt" ((:system :name "osicat/tests") (:system :name "rt")))
 
-("salza2" ((:system :name "zip") (:system :name "salza2"))
- (t (:system :name "salza2")))
+("salza2" ((:system :name "zippy") (:system :name "salza2"))
+ ((:system :name "zip") (:system :name "salza2"))
+ ((:system :name "tar-file") (:system :name "salza2"))
+ ((:system :name "asdf-release-ops/archive") (:system :name "salza2")))
 
 ("serapeum" ((:system :name "spinneret") (:system :name "serapeum")))
 
@@ -540,6 +626,9 @@
  ((:system :name "serapeum") (:system :name "trivia"))
  ((:system :name "fare-quasiquote-optima") (:system :name "trivia.quasiquote")))
 
+("trivial-backtrace"
+ ((:system :name "fiveam") (:system :name "trivial-backtrace")))
+
 ("trivial-cltl2"
  ((:system :name "trivia.level2") (:system :name "trivial-cltl2"))
  ((:system :name "serapeum") (:system :name "trivial-cltl2")))
@@ -550,10 +639,13 @@
  ((:system :name "osicat/tests") (:system :name "trivial-features"))
  ((:system :name "osicat") (:system :name "trivial-features"))
  ((:system :name "osicat") (:system :name "trivial-features"))
+ ((:system :name "mmap") (:system :name "trivial-features"))
+ ((:system :name "file-attributes") (:system :name "trivial-features"))
  ((:system :name "dexador") (:system :name "trivial-features"))
  ((:system :name "cl+ssl") (:system :name "trivial-features"))
  ((:system :name "cffi") (:system :name "trivial-features"))
- ((:system :name "babel") (:system :name "trivial-features")))
+ ((:system :name "babel") (:system :name "trivial-features"))
+ ((:system :name "3bz") (:system :name "trivial-features")))
 
 ("trivial-file-size"
  ((:system :name "serapeum") (:system :name "trivial-file-size")))
@@ -592,7 +684,8 @@
 
 ("type-i" ((:system :name "trivia.balland2006") (:system :name "type-i")))
 
-("usocket" ((:system :name "dexador") (:system :name "usocket"))
+("usocket" ((:system :name "drakma") (:system :name "usocket"))
+ ((:system :name "dexador") (:system :name "usocket"))
  ((:system :name "cl+ssl") (:system :name "usocket")))
 
 ("which" ((:system :name "trivial-extract") (:system :name "which")))
@@ -603,4 +696,6 @@
  ((:system :name "fast-http") (:system :name "xsubseq")))
 
 ("zip" ((:system :name "trivial-extract") (:system :name "zip")))
+
+("zippy" ((:system :name "asdf-release-ops/archive") (:system :name "zippy")))
 

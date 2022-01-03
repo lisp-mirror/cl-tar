@@ -4,6 +4,7 @@
   instead of keeping the slot unbound.
 + System names changed to all start with `tar/`.
 + Added system to create tar archives from the filesystem.
++ Added transparent gzip support.
 
 ## v0.1.1 - September 23, 2021
 
