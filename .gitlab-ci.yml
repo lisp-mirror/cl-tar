@@ -54,3 +54,14 @@ publish docs:
   variables:
     CL_TAR_TAG: $CI_COMMIT_TAG
     CL_TAR_PIPELINE: $CI_PIPELINE_ID
+
+build release:
+  image: daewok/static-sbcl:2.1.9
+  extends:
+    - .clci sbcl
+    - .clci clpm script
+  variables:
+    CLPM_SCRIPT: scripts/build-release.lisp
+  artifacts:
+    paths:
+      - releases/
