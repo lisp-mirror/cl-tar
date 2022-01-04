@@ -68,3 +68,39 @@ build static release:
   artifacts:
     paths:
       - releases/
+
+# This is needed because golang's parameter substitution is crippled (no #) and
+# gitlab's package registries can't accept a version string that starts with a
+# v.
+compute friendly version:
+  image: alpine:3.13
+  script:
+    - echo "PACKAGE_VERSION=${CI_COMMIT_TAG#v}" > release.env
+  rules:
+    - if: '$CI_COMMIT_TAG =~ /^v[0-9]+(\.[0-9]+)*(-.*)?$/'
+  artifacts:
+    reports:
+      dotenv: release.env
+
+publish static release:
+  image: curlimages/curl
+  script:
+    - 'curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file releases/static/cl-tar-${PACKAGE_VERSION}-linux-amd64.tar.gz "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/$CI_PROJECT_NAME/${PACKAGE_VERSION}/cl-tar-${PACKAGE_VERSION}-linux-amd64.tar.gz"'
+  rules:
+    - if: '$CI_COMMIT_TAG =~ /^v[0-9]+(\.[0-9]+)*(-.*)?$/'
+  needs:
+    - "test blocker:release:clci"
+    - "compute friendly version"
+
+gitlab:release:clci:
+  release:
+    assets:
+      links:
+        - name: 'linux-amd64 binary'
+          url: "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/$CI_PROJECT_NAME/${PACKAGE_VERSION}/cl-tar-${PACKAGE_VERSION}-linux-amd64.tar.gz"
+          filepath: '/binaries/cl-tar-linux-amd64'
+  rules:
+    - if: '$CI_COMMIT_TAG =~ /^v[0-9]+(\.[0-9]+)*(-.*)?$/'
+  needs:
+    - "test blocker:release:clci"
+    - "compute friendly version"
