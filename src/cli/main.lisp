@@ -14,6 +14,20 @@
    :parameter "BLOCKING-FACTOR"
    :reduce #'adopt:last))
 
+(defparameter *option-version*
+  (adopt:make-option
+   :version
+   :long "version"
+   :help "Print version and exit"
+   :reduce (constantly t)))
+
+(defparameter *option-verbose*
+  (adopt:make-option
+   :verbose
+   :short #\v
+   :help "Add verbosity"
+   :reduce (constantly t)))
+
 (defparameter *directory*
   (adopt:make-option
    :directory
@@ -70,6 +84,8 @@
    :help "cl-tar creates and extracts tar archives"
    :contents
    (list *help*
+         *option-version*
+         *option-verbose*
          *extract*
          *create*
          *file*
@@ -94,6 +110,12 @@
       (adopt:parse-options *ui* (uiop:command-line-arguments))
     (when (gethash :help options)
       (adopt:print-help-and-exit *ui*))
+    (when (gethash :version options)
+      (format t "~A~%" (asdf:system-version (asdf:find-system "tar")))
+      (when (gethash :verbose options)
+        (format t "~%~A ~A~%ASDF ~A~%~%" (lisp-implementation-type) (lisp-implementation-version) (asdf:asdf-version))
+        (format t "~S~%" *features*))
+      (uiop:quit))
     (when (null (gethash :file options))
       (error "You must specify a file"))
     ;; Resolve the file name against current directory.
