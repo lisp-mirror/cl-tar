@@ -1,10 +1,11 @@
-## Unreleased
+## v0.2.0 - January 04, 2021
 
 + All slots on ENTRY now have a default value. Use NIL for "not provided"
   instead of keeping the slot unbound.
 + System names changed to all start with `tar/`.
 + Added system to create tar archives from the filesystem.
 + Added transparent gzip support.
++ Added command line interface and binary build.
 
 ## v0.1.1 - September 23, 2021
 
