@@ -4,4 +4,4 @@
 
 (asdf:load-system "asdf-release-ops")
 
-(asdf:operate 'asdf-release-ops:dynamic-release-archive-op :tar-cli)
+(asdf:operate 'asdf-release-ops:static-release-archive-op :tar-cli)
