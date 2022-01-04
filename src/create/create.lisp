@@ -39,5 +39,9 @@ non-NIL if the entry should be extracted."
     (tar:with-truncated-unsupported-values (:properties (list 'tar:atime 'tar:ctime 'tar:mtime))
       (let ((*hard-links* (unless dereference-hardlinks-p (make-hash-table :test 'equal))))
         (dolist (file file-list)
+          (when (uiop:file-pathname-p file)
+            ;; The user *might* have meant a directory instead...
+            (when (uiop:directory-exists-p (uiop:ensure-directory-pathname file))
+              (setf file (uiop:ensure-directory-pathname file))))
           (add-path-to-archive archive (or prefix "") file recursep filter)))))
   (values))

@@ -1,4 +1,3 @@
-
 ;;; -*- mode: common-lisp -*-
 (:api-version "0.3")
 
@@ -33,10 +32,6 @@
 ;; Needed to build cl-unicode
 (:system "flexi-streams")
 
-;; Useful for testing compression and decompression.
-(:system "salza2")
-(:system "chipz")
-
 (:gitlab "cl-tar-file"
  :host "gitlab.common-lisp.net"
  :path "cl-tar/cl-tar-file"
@@ -46,4 +41,10 @@
  :path "daewok/osicat"
  :branch "windows-improvements")
 
+(:gitlab "asdf-release-ops"
+ :path "daewok/asdf-release-ops"
+ :branch "main")
+
 (:asd "tar.asd")
+(:asd "tar-cli.asd")
+(:asd "tar-cli-asdf.asd")

@@ -5,7 +5,9 @@
   :author "Eric Timmons <eric@timmons.dev>"
   :description "A high level interface for tar archives"
   :license "MIT"
-  :depends-on ("alexandria" "babel" "local-time" "split-sequence" "tar-file" "uiop" "40ants-doc")
+  :depends-on ("alexandria" "babel" "local-time" "split-sequence"
+                            (:version "tar-file" "0.2.0")
+                            "uiop" "40ants-doc")
   :pathname "src"
   :in-order-to ((test-op (load-op "tar/test")))
   :perform (test-op (o c)

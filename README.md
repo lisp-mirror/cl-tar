@@ -145,35 +145,7 @@ See the docstring for `tar-create:create-archive` to understand its options.
 
 ### Can I create/extract compressed tar files?
 
-Yes. However, support for this is not native at the moment. But I would welcome
-patches to change that.
-
-The easiest way to compress tar files is using
-the [`salza2`](https://xach.com/lisp/salza2/) system. It allows you to create a
-"compressing stream". The creation example from the quickstart, modified to
-compress with gzip is:
-
-```common-lisp
-(asdf:load-system "tar/create")
-(asdf:load-system "salza2")
-
-(let ((*default-pathname-defaults* #p"/path/to/parent/"))
-  (with-open-file (s "/path/to/file.tar.gz" :direction :output :element-type '(unsigned-byte 8))
-    (with-open-stream (compressing-stream (salza2:make-compressing-stream 'salza2:gzip-compressor s))
-      (tar:with-open-archive (a compressing-stream :direction :output)
-        (tar-create:create-archive a '("directory/") :recursep t)))))
-```
-
-The easiest way to decompress tar files is using
-the [`chipz`](https://github.com/sharplispers/chipz) system. The extraction
-example from the quickstart, modified to decompress with gzip is:
-
-```common-lisp
-(asdf:load-system "tar/extract")
-(asdf:load-system "chipz")
-
-(with-open-file (s "/path/to/file.tar.gz" :element-type '(unsigned-byte 8))
-  (with-open-stream (decompressing-stream (chipz:make-decompressing-stream 'chipz:gzip s))
-    (tar:with-open-archive (a decompressing-stream)
-      (tar-extract:extract-archive a :directory "/path/to/extraction/point/"))))
-```
+Yes! It supports transparent gzip comporession. On input streams, the first few
+bytes are examined for magic bytes. On output streams, the pathname is used as
+a hint. You can override this behavior using the `:compression` argument to
+`with-open-archive` or `open-archive`.
