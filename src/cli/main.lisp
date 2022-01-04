@@ -111,7 +111,7 @@
     (when (gethash :help options)
       (adopt:print-help-and-exit *ui*))
     (when (gethash :version options)
-      (format t "~A~%" (asdf:system-version (asdf:find-system "tar")))
+      (format t "~A~%" (asdf:component-version (asdf:find-system "tar")))
       (when (gethash :verbose options)
         (format t "~%~A ~A~%ASDF ~A~%~%" (lisp-implementation-type) (lisp-implementation-version) (asdf:asdf-version))
         (format t "~S~%" *features*))
