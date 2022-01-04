@@ -8,5 +8,5 @@
 (defclass tar-cli-system (ops:release-system)
   ())
 
-(defmethod ops::archive-base-name ((o ops:release-archive-op) (s tar-cli-system))
+(defmethod ops::archive-base-name ((s tar-cli-system))
   "cl-tar")
