@@ -65,7 +65,7 @@
         (nix:utimensat dirfd pn atime-sec atime-nsec mtime-sec mtime-nsec nix:at-symlink-nofollow)
         (nix:futimens fd atime-sec atime-nsec mtime-sec mtime-nsec))
     #-tar-extract-use-utimens
-    (nix:futime fd atime-sec mtime-sec)))
+    (futime fd atime-sec mtime-sec)))
 
 
 ;;; Owner
