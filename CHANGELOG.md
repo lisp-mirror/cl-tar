@@ -1,3 +1,10 @@
+## v0.2.1 - January 12, 2021
+
++ Bug fix: `nix:futime` was previously defined by OSICAT. But that was an error
+  and the latest osicat no longer defines it. Move the implementation of it
+  locally until extraction functions can be written that use Win32 APIs
+  directly.
+  
 ## v0.2.0 - January 04, 2021
 
 + All slots on ENTRY now have a default value. Use NIL for "not provided"
