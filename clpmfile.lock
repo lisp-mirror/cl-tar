@@ -14,7 +14,7 @@
 (:implicit-file :type :file-system :system-files ("tar.asd"))
 (:implicit-vcs :type :vcs :projects
  (("asdf-release-ops" :gitlab :path "daewok/asdf-release-ops")))
-(:implicit-vcs :type :vcs :projects (("osicat" :github :path "daewok/osicat")))
+(:implicit-vcs :type :vcs :projects (("osicat" :github :path "osicat/osicat")))
 (:implicit-vcs :type :vcs :projects
  (("cl-tar-file" :gitlab :host "gitlab.common-lisp.net" :path
    "cl-tar/cl-tar-file")))
@@ -31,7 +31,7 @@
 (:asd-file :name "tar-cli.asd")
 (:asd-file :name "tar.asd")
 (:project :name "asdf-release-ops" :branch "main" :source :implicit-vcs)
-(:project :name "osicat" :branch "windows-improvements" :source :implicit-vcs)
+(:project :name "osicat" :branch "master" :source :implicit-vcs)
 (:project :name "cl-tar-file" :branch "main" :source :implicit-vcs)
 (:system :name "flexi-streams")
 (:system :name "slynk")
@@ -154,7 +154,7 @@
 ("named-readtables" :version "2021-05-31" :source "quicklisp" :systems
  ("named-readtables"))
 ("nibbles" :version "2021-05-31" :source "quicklisp" :systems ("nibbles"))
-("osicat" :version (:commit "6ac0e04bd4f5e1d54c31890b5d94972be01857f4") :source
+("osicat" :version (:commit "6b5002842f29219712a16f7ece116e48932cdd0b") :source
  :implicit-vcs :systems ("osicat" "osicat/tests"))
 ("parachute" :version "2021-10-21" :source "quicklisp" :systems ("parachute"))
 ("parenscript" :version "2018-12-10" :source "quicklisp" :systems
@@ -535,9 +535,7 @@
  ((:system :name "tar/create") (:system :name "osicat"))
  ((:system :name "osicat/tests") (:system :name "osicat"))
  ((:system :name "asdf-release-ops/osicat") (:system :name "osicat"))
- (t
-  (:project :name "osicat" :branch "windows-improvements" :source
-   :implicit-vcs)))
+ (t (:project :name "osicat" :branch "master" :source :implicit-vcs)))
 
 ("parachute" ((:system :name "tar/test") (:system :name "parachute"))
  ((:system :name "tar/simple-extract-test") (:system :name "parachute"))

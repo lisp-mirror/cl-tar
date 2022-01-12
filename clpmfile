@@ -38,8 +38,8 @@
  :branch "main")
 
 (:github "osicat"
- :path "daewok/osicat"
- :branch "windows-improvements")
+ :path "osicat/osicat"
+ :branch "master")
 
 (:gitlab "asdf-release-ops"
  :path "daewok/asdf-release-ops"
