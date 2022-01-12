@@ -50,6 +50,7 @@ publish docs:
     - if: '$CI_COMMIT_TAG =~ /^v[0-9]+(\.[0-9]+)*(-.*)?$/'
   needs:
     - "test blocker:release:clci"
+    - "generate docs"
   trigger: cl-tar/cl-tar-site
   variables:
     CL_TAR_TAG: $CI_COMMIT_TAG
