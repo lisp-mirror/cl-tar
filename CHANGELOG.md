@@ -1,3 +1,8 @@
+## v0.2.2 - January 30, 2021
+
++ Bug fix: Remove two systems `tar/simple-create` and `tar/simple-create-test`
+  that were accidentally committed.
+
 ## v0.2.1 - January 12, 2021
 
 + Bug fix: `nix:futime` was previously defined by OSICAT. But that was an error

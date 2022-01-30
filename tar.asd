@@ -85,22 +85,6 @@
                (:file "fd-stream" :depends-on ("package" "utils" "features"))
                (:file "extract" :depends-on ("package" "conditions" "utils" "features"))))
 
-(asdf:defsystem #:tar/simple-create
-  :version (:read-file-form "version.lisp-expr")
-  :author "Eric Timmons <eric@timmons.dev>"
-  :description "A system to create tar archives from the filesystem using only portable CL constructs."
-  :license "MIT"
-  :depends-on ("tar" "uiop" "local-time")
-  :pathname "src/simple-create/"
-  :in-order-to ((test-op (load-op "tar/simple-create-test")))
-  :perform (test-op (o c)
-                    (unless (eql :passed (uiop:symbol-call
-                                          :parachute :status
-                                          (uiop:symbol-call :parachute :test :tar-simple-create-test)))
-                      (error "Tests failed")))
-  :components ((:file "package")
-               (:file "create" :depends-on ("package"))))
-
 (asdf:defsystem #:tar/simple-extract
   :version (:read-file-form "version.lisp-expr")
   :author "Eric Timmons <eric@timmons.dev>"
@@ -157,18 +141,6 @@
                (:file "extract" :depends-on ("package" "utils"))
                (:file "stress" :depends-on ("package" "utils")))
   :depends-on ("tar/extract" "parachute"))
-
-(defsystem #:tar/simple-create-test
-  :version (:read-file-form "version.lisp-expr")
-  :author "Eric Timmons <eric@timmons.dev>"
-  :description "Tar simple create test system"
-  :license "MIT"
-  :pathname "test/simple-create"
-  :components ((:file "package")
-               (:file "utils" :depends-on ("package"))
-               (:file "v7" :depends-on ("package" "utils"))
-               (:file "stress" :depends-on ("package" "utils")))
-  :depends-on ("tar/simple-create" "parachute" "osicat"))
 
 (defsystem #:tar/simple-extract-test
   :version (:read-file-form "version.lisp-expr")
