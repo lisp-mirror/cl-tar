@@ -1,6 +1,6 @@
 include:
   - project: 'clci/gitlab-ci'
-    ref: v2-dev
+    ref: v2-stable
     file:
       - definitions.gitlab-ci.yml
       - guarded-linux-test-pipeline.gitlab-ci.yml
